@@ -121,7 +121,10 @@ function AppLayout() {
 }
 
 function GlobalCoachToggle() {
-  const { coachContext, isCoachOpen, toggleCoach, closeCoach } = useCoach()
+  const { coachContext, isCoachOpen, isCoachDisabled, toggleCoach, closeCoach } = useCoach()
+
+  if (isCoachDisabled) return null
+
   return (
     <>
       <button

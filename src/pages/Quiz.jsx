@@ -21,7 +21,7 @@ function shuffleOptions(question) {
 function Quiz() {
   const { moduleId } = useParams()
   const { userId } = useUserId()
-  const { setCoachContext } = useCoach()
+  const { disableCoach, enableCoach, setCoachContext } = useCoach()
   const [mod, setMod] = useState(null)
   const [course, setCourse] = useState(null)
   const [questions, setQuestions] = useState([])
@@ -70,12 +70,15 @@ function Quiz() {
     initQuiz()
   }, [initQuiz])
 
-  // Set coach context
+  // Disable coach during quiz, re-enable on results or unmount
   useEffect(() => {
-    if (mod && course && questions.length > 0) {
-      setCoachContext('quiz', moduleId, { moduleTitle: mod.title, courseTitle: course.title, currentQuestion: questions[currentIndex]?.question || '' })
+    if (!showResults) disableCoach()
+    else if (mod && course) {
+      enableCoach()
+      setCoachContext('general', null, { topic: `Just finished quiz for ${mod.title} in ${course.title}. Score: ${Math.round((answers.filter((a) => a.is_correct).length / questions.length) * 100)}%. Help them learn from mistakes.` })
     }
-  }, [mod, course, currentIndex, questions])
+    return () => enableCoach()
+  }, [showResults])
 
   const handleAnswer = async (answer) => {
     const newAnswers = [...answers, answer]
