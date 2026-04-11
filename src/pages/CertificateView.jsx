@@ -21,21 +21,43 @@ function CertificateView() {
     fetch()
   }, [certificateNumber])
 
+  const [downloading, setDownloading] = useState(false)
+
   const handleDownloadPdf = async () => {
     const el = document.getElementById('certificate-content')
     if (!el) return
+    setDownloading(true)
 
-    const html2canvas = (await import('html2canvas')).default
-    const { jsPDF } = await import('jspdf')
+    try {
+      // Convert SVGs to inline data to help html2canvas
+      const svgs = el.querySelectorAll('svg')
+      svgs.forEach((svg) => {
+        svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+      })
 
-    const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#0a0e17', useCORS: true })
-    const imgData = canvas.toDataURL('image/png')
+      const html2canvas = (await import('html2canvas')).default
+      const { jsPDF } = await import('jspdf')
 
-    const pdf = new jsPDF({ orientation: 'landscape', unit: 'in', format: 'letter' })
-    const pdfWidth = pdf.internal.pageSize.getWidth()
-    const pdfHeight = pdf.internal.pageSize.getHeight()
-    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight)
-    pdf.save(`HGDev-Certificate-${certificateNumber}.pdf`)
+      const canvas = await html2canvas(el, {
+        scale: 2,
+        backgroundColor: '#0a0e17',
+        useCORS: true,
+        logging: false,
+        allowTaint: true,
+        foreignObjectRendering: false,
+      })
+
+      const imgData = canvas.toDataURL('image/png')
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'in', format: 'letter' })
+      const pdfWidth = pdf.internal.pageSize.getWidth()
+      const pdfHeight = pdf.internal.pageSize.getHeight()
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight)
+      pdf.save(`HGDev-Certificate-${certificateNumber}.pdf`)
+    } catch (err) {
+      console.error('PDF generation failed:', err)
+      alert('PDF download failed. Try using Print → Save as PDF instead.')
+    }
+    setDownloading(false)
   }
 
   const handlePrint = () => window.print()
@@ -83,9 +105,9 @@ function CertificateView() {
 
         {/* Actions */}
         <div className="flex items-center justify-center gap-3 mt-8 print:hidden">
-          <button onClick={handleDownloadPdf}
-            className="px-5 py-2.5 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-500 transition-colors">
-            Download PDF
+          <button onClick={handleDownloadPdf} disabled={downloading}
+            className="px-5 py-2.5 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-500 disabled:opacity-50 transition-colors">
+            {downloading ? 'Generating...' : 'Download PDF'}
           </button>
           <button onClick={handlePrint}
             className="px-5 py-2.5 border border-gray-700 text-gray-300 text-sm font-medium rounded-lg hover:border-gray-500 transition-colors">
