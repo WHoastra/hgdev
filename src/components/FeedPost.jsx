@@ -30,6 +30,8 @@ function FeedPost({ post, currentUserId, onUpdate, isCelebration }) {
   const [showEmojis, setShowEmojis] = useState(false)
   const [expanded, setExpanded] = useState(post.content.length <= 300)
   const [showMenu, setShowMenu] = useState(false)
+  const [lightbox, setLightbox] = useState(false)
+  const [imgLoaded, setImgLoaded] = useState(false)
   const isMine = post.user_id === currentUserId
   const reactions = post.emoji_reactions || {}
   const badge = typeBadge[post.type]
@@ -108,6 +110,31 @@ function FeedPost({ post, currentUserId, onUpdate, isCelebration }) {
           <span className="inline-block mt-2 text-[10px] px-2 py-0.5 rounded-full bg-gray-700 text-gray-400">{post.related_course}</span>
         )}
       </div>
+
+      {/* Image */}
+      {post.image_url && (
+        <div className="mb-3 relative">
+          {!imgLoaded && <div className="w-full h-48 bg-gray-800 rounded-lg animate-pulse" />}
+          <img
+            src={post.image_url}
+            alt="Post attachment"
+            onLoad={() => setImgLoaded(true)}
+            onClick={() => setLightbox(true)}
+            className={`max-w-full max-h-[400px] rounded-lg border border-gray-700/50 cursor-pointer hover:opacity-90 transition-opacity object-cover ${imgLoaded ? '' : 'hidden'}`}
+          />
+          {post.image_type === 'gif' && imgLoaded && (
+            <span className="absolute bottom-2 left-2 bg-black/70 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">GIF</span>
+          )}
+        </div>
+      )}
+
+      {/* Lightbox */}
+      {lightbox && post.image_url && (
+        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4" onClick={() => setLightbox(false)}>
+          <button className="absolute top-4 right-4 text-white/70 hover:text-white text-2xl" onClick={() => setLightbox(false)}>✕</button>
+          <img src={post.image_url} alt="Full size" className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg" onClick={(e) => e.stopPropagation()} />
+        </div>
+      )}
 
       {/* Reactions */}
       <div className="flex items-center gap-1.5 flex-wrap mb-2">

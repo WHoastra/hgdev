@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { createPost } from '../lib/feed'
+import { compressImage, sanitizeFilename, validateImage } from '../lib/imageUtils'
+import FeedImageUpload from './FeedImageUpload'
 
 const TYPES = [
   { value: 'question', label: '❓ Question' },
@@ -15,22 +17,83 @@ function FeedInput({ userId, onPost }) {
   const [courses, setCourses] = useState([])
   const [focused, setFocused] = useState(false)
   const [posting, setPosting] = useState(false)
+  const [imageFile, setImageFile] = useState(null)
+  const [uploadStatus, setUploadStatus] = useState(null)
+  const textareaRef = useRef(null)
 
   useEffect(() => {
     supabase.from('courses').select('title').order('title').then(({ data }) => setCourses(data || []))
   }, [])
 
+  // Paste support
+  useEffect(() => {
+    const el = textareaRef.current
+    if (!el) return
+    const handlePaste = (e) => {
+      const items = e.clipboardData?.items
+      if (!items) return
+      for (const item of items) {
+        if (item.type.startsWith('image/')) {
+          e.preventDefault()
+          const file = item.getAsFile()
+          if (file) {
+            const err = validateImage(file)
+            if (!err) setImageFile(file)
+          }
+          break
+        }
+      }
+    }
+    el.addEventListener('paste', handlePaste)
+    return () => el.removeEventListener('paste', handlePaste)
+  }, [])
+
   const handlePost = async () => {
     if (!content.trim() || posting) return
     setPosting(true)
-    const result = await createPost(userId, type, content, course || null)
+
+    let imageUrl = null
+    let imageType = null
+
+    if (imageFile) {
+      setUploadStatus('Uploading image...')
+      try {
+        const compressed = await compressImage(imageFile)
+        const filename = `${Date.now()}-${sanitizeFilename(imageFile.name)}`
+        const path = `${userId}/${filename}`
+
+        const { error: uploadError } = await supabase.storage.from('feed-images').upload(path, compressed, {
+          contentType: compressed.type,
+          upsert: false,
+        })
+
+        if (uploadError) {
+          setUploadStatus('Image upload failed. Try again.')
+          setPosting(false)
+          return
+        }
+
+        const { data: urlData } = supabase.storage.from('feed-images').getPublicUrl(path)
+        imageUrl = urlData.publicUrl
+        imageType = imageFile.type === 'image/gif' ? 'gif' : 'image'
+      } catch {
+        setUploadStatus('Image upload failed. Try again.')
+        setPosting(false)
+        return
+      }
+    }
+
+    setUploadStatus(null)
+    const result = await createPost(userId, type, content, course || null, null, imageUrl, imageType)
     setPosting(false)
+
     if (result?.error === 'rate_limited') {
       alert("You're on fire! Take a breather and come back in a few minutes.")
       return
     }
     if (result) {
       setContent(''); setType('question'); setCourse(''); setFocused(false)
+      setImageFile(null)
       onPost?.()
     }
   }
@@ -43,6 +106,7 @@ function FeedInput({ userId, onPost }) {
         </div>
         <div className="flex-1">
           <textarea
+            ref={textareaRef}
             value={content}
             onChange={(e) => setContent(e.target.value.slice(0, 1000))}
             onFocus={() => setFocused(true)}
@@ -52,7 +116,16 @@ function FeedInput({ userId, onPost }) {
           />
           {content.length > 800 && <p className="text-[10px] text-gray-600 mt-1 text-right">{content.length}/1000</p>}
 
-          {(focused || content) && (
+          {/* Image preview */}
+          <FeedImageUpload
+            onImageSelected={setImageFile}
+            onImageRemoved={() => setImageFile(null)}
+            currentImage={imageFile ? { url: URL.createObjectURL(imageFile), name: imageFile.name, size: imageFile.size, isGif: imageFile.type === 'image/gif' } : null}
+          />
+
+          {uploadStatus && <p className="text-xs text-yellow-400 mt-1">{uploadStatus}</p>}
+
+          {(focused || content || imageFile) && (
             <div className="flex items-center justify-between mt-3 flex-wrap gap-2">
               <div className="flex items-center gap-2 flex-wrap">
                 {TYPES.map((t) => (

@@ -33,7 +33,7 @@ export async function getReplies(parentId) {
   return data.map((p) => ({ ...p, userProfile: profiles[p.user_id] }))
 }
 
-export async function createPost(userId, type, content, relatedCourse = null, relatedModule = null) {
+export async function createPost(userId, type, content, relatedCourse = null, relatedModule = null, imageUrl = null, imageType = null) {
   const trimmed = content.trim()
   if (!trimmed || trimmed.length > 1000) return null
 
@@ -47,9 +47,10 @@ export async function createPost(userId, type, content, relatedCourse = null, re
     localStorage.setItem(key, JSON.stringify(recent))
   } catch {}
 
-  const { data, error } = await supabase.from('feed_posts').insert({
-    user_id: userId, type, content: trimmed, related_course: relatedCourse, related_module: relatedModule,
-  }).select().single()
+  const insert = { user_id: userId, type, content: trimmed, related_course: relatedCourse, related_module: relatedModule }
+  if (imageUrl) { insert.image_url = imageUrl; insert.image_type = imageType }
+
+  const { data, error } = await supabase.from('feed_posts').insert(insert).select().single()
   if (error) return null
   return data
 }
