@@ -1,6 +1,12 @@
 import { Link } from 'react-router-dom'
+import { useUser } from '@clerk/clerk-react'
 
 function Landing() {
+  let isSignedIn = false
+  try {
+    const result = useUser()
+    isSignedIn = result.isSignedIn
+  } catch {}
   const scrollToMission = (e) => {
     e.preventDefault()
     document.getElementById('mission')?.scrollIntoView({ behavior: 'smooth' })
@@ -14,12 +20,15 @@ function Landing() {
           <Link to="/" className="font-heading text-xl font-bold text-green-500">
             HGDev
           </Link>
-          <Link
-            to="/courses"
-            className="text-sm font-medium text-green-400 border border-green-500/50 rounded-full px-4 py-1.5 hover:bg-green-500/10 transition-colors"
-          >
-            Join the movement
-          </Link>
+          {isSignedIn ? (
+            <Link to="/courses" className="text-sm font-medium text-green-400 border border-green-500/50 rounded-full px-4 py-1.5 hover:bg-green-500/10 transition-colors">
+              My Courses
+            </Link>
+          ) : (
+            <Link to="/sign-in" className="text-sm font-medium text-green-400 border border-green-500/50 rounded-full px-4 py-1.5 hover:bg-green-500/10 transition-colors">
+              Sign In
+            </Link>
+          )}
         </div>
       </nav>
 
@@ -40,10 +49,10 @@ function Landing() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 anim-fade-down" style={{ animationDelay: '0.3s' }}>
             <Link
-              to="/courses"
+              to={isSignedIn ? '/courses' : '/sign-up'}
               className="px-7 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-500 transition-colors text-sm"
             >
-              Start building
+              {isSignedIn ? 'Go to your courses' : 'Start building'}
             </Link>
             <a
               href="#mission"
@@ -176,10 +185,10 @@ function Landing() {
           No tuition. No gatekeepers. No excuses. Just the work.
         </p>
         <Link
-          to="/courses"
+          to={isSignedIn ? '/courses' : '/sign-up'}
           className="inline-block px-8 py-3.5 bg-green-600 text-white font-medium rounded-lg hover:bg-green-500 transition-colors text-sm"
         >
-          Start your first lesson
+          {isSignedIn ? 'Go to your courses' : 'Start your first lesson'}
         </Link>
       </section>
 
