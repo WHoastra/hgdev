@@ -6,7 +6,7 @@ function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
 
   const linkClass = (path) => {
-    const isActive = path === '/' ? pathname === '/' : pathname.startsWith(path)
+    const isActive = pathname.startsWith(path)
     return `text-sm font-medium transition-colors ${
       isActive
         ? 'text-green-400 border-b-2 border-green-400 pb-0.5'
@@ -15,7 +15,7 @@ function Navbar() {
   }
 
   const mobileLinkClass = (path) => {
-    const isActive = path === '/' ? pathname === '/' : pathname.startsWith(path)
+    const isActive = pathname.startsWith(path)
     return `block px-4 py-2 text-sm font-medium transition-colors ${
       isActive
         ? 'text-green-400 bg-gray-800/50'
@@ -31,7 +31,7 @@ function Navbar() {
             HGDev
           </Link>
           <div className="hidden sm:flex items-center gap-4">
-            <Link to="/" className={linkClass('/')}>Courses</Link>
+            <Link to="/courses" className={linkClass('/courses')}>Courses</Link>
             <Link to="/progress" className={linkClass('/progress')}>Progress</Link>
           </div>
         </div>
@@ -57,7 +57,7 @@ function Navbar() {
 
       {menuOpen && (
         <div className="sm:hidden border-t border-gray-800 py-2">
-          <Link to="/" className={mobileLinkClass('/')} onClick={() => setMenuOpen(false)}>
+          <Link to="/courses" className={mobileLinkClass('/courses')} onClick={() => setMenuOpen(false)}>
             Courses
           </Link>
           <Link to="/progress" className={mobileLinkClass('/progress')} onClick={() => setMenuOpen(false)}>

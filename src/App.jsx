@@ -1,5 +1,6 @@
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom'
 import Navbar from './components/Navbar'
+import Landing from './pages/Landing'
 import Dashboard from './pages/Dashboard'
 import CourseDetail from './pages/CourseDetail'
 import LessonDetail from './pages/LessonDetail'
@@ -8,22 +9,26 @@ import Terms from './pages/Terms'
 import Privacy from './pages/Privacy'
 import NotFound from './pages/NotFound'
 
-function App() {
+function AppLayout() {
+  const { pathname } = useLocation()
+  const isLanding = pathname === '/'
+
   return (
-    <BrowserRouter>
-      <div className="min-h-screen bg-[#0f172a] flex flex-col">
-        <Navbar />
-        <main className="flex-1 flex flex-col">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/course/:id" element={<CourseDetail />} />
-            <Route path="/lesson/:id" element={<LessonDetail />} />
-            <Route path="/progress" element={<Progress />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </main>
+    <div className="min-h-screen bg-[#0f172a] flex flex-col">
+      {!isLanding && <Navbar />}
+      <main className="flex-1 flex flex-col">
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/courses" element={<Dashboard />} />
+          <Route path="/course/:id" element={<CourseDetail />} />
+          <Route path="/lesson/:id" element={<LessonDetail />} />
+          <Route path="/progress" element={<Progress />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </main>
+      {!isLanding && (
         <footer className="border-t border-[#1e293b] py-6 px-4">
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
             <p className="text-xs text-gray-600">
@@ -39,7 +44,15 @@ function App() {
             </div>
           </div>
         </footer>
-      </div>
+      )}
+    </div>
+  )
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppLayout />
     </BrowserRouter>
   )
 }
