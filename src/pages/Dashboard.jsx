@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
+import { seedAllCourses } from '../lib/seedCourses'
 import CourseCard from '../components/CourseCard'
 import SearchBar from '../components/SearchBar'
 import FilterBar from '../components/FilterBar'
@@ -142,7 +143,20 @@ function Dashboard() {
           <div className="text-center py-20">
             <div className="text-5xl mb-4">📚</div>
             <h3 className="text-lg font-medium text-gray-300 mb-2">No courses yet</h3>
-            <p className="text-gray-500">Seed some data to get started.</p>
+            <p className="text-gray-500 mb-6">Seed the course library to get started.</p>
+            <button
+              onClick={async () => {
+                try {
+                  await seedAllCourses()
+                  window.location.reload()
+                } catch (e) {
+                  alert('Seed failed: ' + e.message)
+                }
+              }}
+              className="px-5 py-2.5 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-500 transition-colors"
+            >
+              Seed Course Library
+            </button>
           </div>
         ) : filteredCourses.length === 0 ? (
           <div className="text-center py-20">
