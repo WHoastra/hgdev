@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
+import { seedTerminalCourse } from '../lib/seedTerminalCourse'
 import CourseCard from '../components/CourseCard'
 import SearchBar from '../components/SearchBar'
 import FilterBar from '../components/FilterBar'
@@ -117,9 +118,26 @@ function Dashboard() {
   return (
     <div className="animate-fade-in">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-white">Your Courses</h1>
-          <p className="text-gray-400 mt-1">Track your progress through each course</p>
+        <div className="flex items-start justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-white">Your Courses</h1>
+            <p className="text-gray-400 mt-1">Track your progress through each course</p>
+          </div>
+          <button
+            onClick={async () => {
+              if (!confirm('Load Terminal & Command Line course?')) return
+              try {
+                const r = await seedTerminalCourse()
+                alert(`Added: ${r.modules} modules, ${r.lessons} lessons, ${r.quizQuestions} quiz questions, ${r.flashcards} flashcards!`)
+                window.location.reload()
+              } catch (e) {
+                alert('Failed: ' + e.message)
+              }
+            }}
+            className="px-3 py-1.5 bg-gray-700 text-gray-300 text-xs rounded hover:bg-gray-600 transition-colors shrink-0"
+          >
+            Load Terminal Course
+          </button>
         </div>
 
         <div className="space-y-4 mb-6">
