@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
 import { seedAllQuizzes } from '../lib/seedQuizzes'
+import { seedAllFlashcards } from '../lib/seedFlashcards'
 import CourseCard from '../components/CourseCard'
 import SearchBar from '../components/SearchBar'
 import FilterBar from '../components/FilterBar'
@@ -136,6 +137,20 @@ function Dashboard() {
             className="px-3 py-1.5 bg-gray-700 text-gray-300 text-xs rounded hover:bg-gray-600 transition-colors shrink-0"
           >
             Load Quizzes
+          </button>
+          <button
+            onClick={async () => {
+              if (!confirm('Load flashcards for all modules?')) return
+              try {
+                const result = await seedAllFlashcards()
+                alert(`Loaded ${result.flashcards} flashcards across ${result.modules} modules!`)
+              } catch (e) {
+                alert('Failed: ' + e.message)
+              }
+            }}
+            className="px-3 py-1.5 bg-gray-700 text-gray-300 text-xs rounded hover:bg-gray-600 transition-colors shrink-0"
+          >
+            Load Flashcards
           </button>
         </div>
 
