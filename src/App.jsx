@@ -13,6 +13,8 @@ import Terms from './pages/Terms'
 import Privacy from './pages/Privacy'
 import Quiz from './pages/Quiz'
 import Flashcards from './pages/Flashcards'
+import Profile from './pages/Profile'
+import PublicProfile from './pages/PublicProfile'
 import NotFound from './pages/NotFound'
 
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
@@ -72,6 +74,8 @@ function AppLayout() {
           <Route path="/progress" element={<ProtectedRoute><Progress /></ProtectedRoute>} />
           <Route path="/quiz/:moduleId" element={<ProtectedRoute><Quiz /></ProtectedRoute>} />
           <Route path="/flashcards/:moduleId" element={<ProtectedRoute><Flashcards /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/member/:userId" element={<ProtectedRoute><PublicProfile /></ProtectedRoute>} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="*" element={<NotFound />} />
