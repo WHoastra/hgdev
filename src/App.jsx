@@ -20,6 +20,7 @@ import Conversation from './pages/Conversation'
 import Community from './pages/Community'
 import Channels from './pages/Channels'
 import ChannelView from './pages/Channel'
+import CertificateView from './pages/CertificateView'
 import NotFound from './pages/NotFound'
 
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
@@ -86,6 +87,7 @@ function AppLayout() {
           <Route path="/channels/:slug" element={<ProtectedRoute><ChannelView /></ProtectedRoute>} />
           <Route path="/messages" element={<ProtectedRoute><Inbox /></ProtectedRoute>} />
           <Route path="/messages/:conversationId" element={<ProtectedRoute><Conversation /></ProtectedRoute>} />
+          <Route path="/certificate/:certificateNumber" element={<CertificateView />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="*" element={<NotFound />} />

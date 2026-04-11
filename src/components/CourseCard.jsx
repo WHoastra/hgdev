@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import ProgressBar from './ProgressBar'
+import CertificateButton from './CertificateButton'
+import { useUserId } from '../lib/useUserId'
 
 const difficultyColors = {
   beginner: 'bg-green-900 text-green-300',
@@ -9,6 +11,7 @@ const difficultyColors = {
 
 function CourseCard({ course, progress }) {
   const navigate = useNavigate()
+  const { userId } = useUserId()
   const { completedLessons, totalLessons, percentage } = progress
 
   return (
@@ -25,9 +28,7 @@ function CourseCard({ course, progress }) {
           </span>
         )}
         {course.difficulty && (
-          <span
-            className={`text-xs px-2 py-0.5 rounded-full ${difficultyColors[course.difficulty] || 'bg-gray-700 text-gray-300'}`}
-          >
+          <span className={`text-xs px-2 py-0.5 rounded-full ${difficultyColors[course.difficulty] || 'bg-gray-700 text-gray-300'}`}>
             {course.difficulty}
           </span>
         )}
@@ -36,19 +37,21 @@ function CourseCard({ course, progress }) {
       <h3 className="text-lg font-semibold text-white mb-2">{course.title}</h3>
 
       {course.description && (
-        <p className="text-sm text-gray-400 mb-4 line-clamp-3">
-          {course.description}
-        </p>
+        <p className="text-sm text-gray-400 mb-4 line-clamp-3">{course.description}</p>
       )}
 
       <div className="flex items-center gap-4">
         <div className="flex-1">
           <ProgressBar percentage={percentage} />
         </div>
-        <p className="text-xs text-gray-500 shrink-0">
-          {completedLessons}/{totalLessons} lessons
-        </p>
+        <p className="text-xs text-gray-500 shrink-0">{completedLessons}/{totalLessons} lessons</p>
       </div>
+
+      {percentage >= 100 && (
+        <div className="mt-3" onClick={(e) => e.stopPropagation()}>
+          <CertificateButton courseId={course.id} userId={userId} courseProgress={percentage} />
+        </div>
+      )}
     </div>
   )
 }

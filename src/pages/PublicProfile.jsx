@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useUserId } from '../lib/useUserId'
 import SkillTag from '../components/SkillTag'
 import NewMessageModal from '../components/NewMessageModal'
+import { getCertificatesForUser } from '../lib/certificate'
 
 const expLabels = {
   brand_new: 'Brand New',
@@ -21,6 +22,7 @@ function PublicProfile() {
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
   const [showMessageModal, setShowMessageModal] = useState(false)
+  const [certificates, setCertificates] = useState([])
   const isOwnProfile = currentUserId === userId
 
   useEffect(() => {
@@ -38,6 +40,8 @@ function PublicProfile() {
         setNotFound(false)
       } else {
         setProfile(data[0])
+        const certs = await getCertificatesForUser(userId)
+        setCertificates(certs)
       }
       setLoading(false)
     }
@@ -167,6 +171,25 @@ function PublicProfile() {
               {profile.github_url && <a href={profile.github_url} target="_blank" rel="noopener noreferrer" className="text-sm text-gray-400 hover:text-green-400 transition-colors">GitHub ↗</a>}
               {profile.linkedin_url && <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-sm text-gray-400 hover:text-green-400 transition-colors">LinkedIn ↗</a>}
               {profile.portfolio_url && <a href={profile.portfolio_url} target="_blank" rel="noopener noreferrer" className="text-sm text-gray-400 hover:text-green-400 transition-colors">Portfolio ↗</a>}
+            </div>
+          </div>
+        )}
+
+        {/* Certificates */}
+        {certificates.length > 0 && (
+          <div className="bg-[#1e293b] rounded-lg border border-gray-700 p-6 mb-6">
+            <h2 className="text-lg font-semibold text-white mb-3">Certificates</h2>
+            <div className="space-y-2">
+              {certificates.map((c) => (
+                <Link key={c.id} to={`/certificate/${c.certificate_number}`}
+                  className="flex items-center justify-between p-3 bg-[#0f172a] rounded-lg hover:bg-gray-800/50 transition-colors">
+                  <div>
+                    <p className="text-sm text-white font-medium">🏆 {c.course_title}</p>
+                    <p className="text-xs text-gray-500">{new Date(c.issued_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                  </div>
+                  <span className="text-xs text-gray-500 font-mono">{c.certificate_number}</span>
+                </Link>
+              ))}
             </div>
           </div>
         )}
