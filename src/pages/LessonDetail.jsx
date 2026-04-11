@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useUserId } from '../lib/useUserId'
 import StatusToggle from '../components/StatusToggle'
+import { postCelebration } from '../lib/feed'
 import TextToSpeech from '../components/TextToSpeech'
 
 function LessonDetail() {
@@ -138,6 +139,18 @@ function LessonDetail() {
       fields.completed_at = null
     }
     await upsertProgress(fields)
+
+    // Check if entire module is now complete → post celebration
+    if (newStatus === 'complete' && module && course) {
+      const { data: modLessons } = await supabase.from('lessons').select('id').eq('module_id', module.id)
+      if (modLessons) {
+        const { data: completedProgress } = await supabase.from('progress').select('id')
+          .in('lesson_id', modLessons.map((l) => l.id)).eq('user_id', userId).eq('status', 'complete')
+        if (completedProgress && completedProgress.length >= modLessons.length) {
+          postCelebration(userId, course.title, module.title)
+        }
+      }
+    }
   }
 
   const handleNotesChange = (e) => {

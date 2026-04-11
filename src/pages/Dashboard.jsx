@@ -5,6 +5,7 @@ import { useUserId } from '../lib/useUserId'
 import CourseCard from '../components/CourseCard'
 import SearchBar from '../components/SearchBar'
 import FilterBar from '../components/FilterBar'
+import PublicFeed from '../components/PublicFeed'
 
 function Dashboard() {
   const { userId, isLoaded } = useUserId()
@@ -197,6 +198,11 @@ function Dashboard() {
             ))}
           </div>
         )}
+
+        {/* Community Feed */}
+        <div className="mt-12 border-t border-gray-800 pt-10">
+          <PublicFeed />
+        </div>
       </div>
     </div>
   )
