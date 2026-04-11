@@ -88,19 +88,35 @@ function Quiz() {
         answers,
       })
 
-      // If mastery (80%+), mark all lessons in this module as complete
-      if (percentage >= 80) {
-        const { data: moduleLessons } = await supabase
-          .from('lessons')
-          .select('id')
-          .eq('module_id', moduleId)
+      // Mark lessons based on quiz results
+      // Map questions to lessons by position within the module
+      const { data: moduleLessons } = await supabase
+        .from('lessons')
+        .select('id')
+        .eq('module_id', moduleId)
+        .order('sort_order')
 
-        if (moduleLessons) {
-          for (const lesson of moduleLessons) {
+      if (moduleLessons && moduleLessons.length > 0) {
+        // Build a pass/fail map per lesson
+        // Questions map to lessons proportionally: question i → lesson floor(i * numLessons / numQuestions)
+        const numLessons = moduleLessons.length
+        const numQuestions = newAnswers.length
+        const lessonPassed = new Array(numLessons).fill(true)
+
+        for (let i = 0; i < numQuestions; i++) {
+          const lessonIdx = Math.min(Math.floor(i * numLessons / numQuestions), numLessons - 1)
+          if (!newAnswers[i].is_correct) {
+            lessonPassed[lessonIdx] = false
+          }
+        }
+
+        for (let i = 0; i < numLessons; i++) {
+          if (lessonPassed[i]) {
+            const lessonId = moduleLessons[i].id
             const { data: existing } = await supabase
               .from('progress')
               .select('id, status')
-              .eq('lesson_id', lesson.id)
+              .eq('lesson_id', lessonId)
               .limit(1)
 
             if (existing && existing.length > 0) {
@@ -113,7 +129,7 @@ function Quiz() {
               }
             } else {
               await supabase.from('progress').insert({
-                lesson_id: lesson.id,
+                lesson_id: lessonId,
                 status: 'complete',
                 completed_at: new Date().toISOString(),
               })
