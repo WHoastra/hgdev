@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Landing from './pages/Landing'
@@ -14,6 +15,11 @@ import NotFound from './pages/NotFound'
 function AppLayout() {
   const { pathname } = useLocation()
   const isLanding = pathname === '/'
+
+  // Cancel speech on route change
+  useEffect(() => {
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel()
+  }, [pathname])
 
   return (
     <div className="min-h-screen bg-[#0f172a] flex flex-col">

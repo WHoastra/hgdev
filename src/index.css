@@ -91,3 +91,17 @@ body {
 .flashcard-flipped {
   transform: rotateY(180deg);
 }
+
+/* TTS active pulse */
+@keyframes tts-glow {
+  0%, 100% {
+    box-shadow: 0 0 4px rgba(34, 197, 94, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(34, 197, 94, 0.5);
+  }
+}
+
+.tts-pulse {
+  animation: tts-glow 1.5s ease-in-out infinite;
+}

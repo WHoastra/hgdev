@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import StatusToggle from '../components/StatusToggle'
+import TextToSpeech from '../components/TextToSpeech'
 
 function LessonDetail() {
   const { id } = useParams()
@@ -211,6 +212,9 @@ function LessonDetail() {
         {/* Lesson Content */}
         {lesson.content && (
           <div className="bg-[#1e293b] rounded-lg border border-gray-700 p-6 sm:p-8 mb-8">
+            <div className="mb-4">
+              <TextToSpeech text={lesson.content} label="Listen to this lesson" />
+            </div>
             <p className="text-gray-300 leading-7 text-base whitespace-pre-wrap">
               {lesson.content}
             </p>
@@ -219,8 +223,11 @@ function LessonDetail() {
 
         {/* Notes Section */}
         <div className="bg-[#1e293b] rounded-lg border border-gray-700 p-6 sm:p-8 mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-white">My Notes</h2>
+          <div className="flex items-center justify-between gap-3 mb-4">
+            <div className="flex items-center gap-3">
+              <h2 className="text-lg font-semibold text-white">My Notes</h2>
+              {notes && <TextToSpeech text={notes} label="Read my notes" size="small" />}
+            </div>
             {saveMessage && (
               <span className="text-sm text-green-400 animate-pulse">
                 {saveMessage}

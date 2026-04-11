@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import TextToSpeech from './TextToSpeech'
 
 function DifficultyDots({ level }) {
   const colors = ['bg-green-500', 'bg-yellow-500', 'bg-red-500']
@@ -11,14 +12,41 @@ function DifficultyDots({ level }) {
   )
 }
 
-function Flashcard({ flashcard, onResult }) {
+function Flashcard({ flashcard, onResult, autoRead }) {
   const [flipped, setFlipped] = useState(false)
 
+  // Cancel speech on card change
+  useEffect(() => {
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel()
+  }, [flashcard.id])
+
+  // Auto-read question on new card
+  useEffect(() => {
+    if (autoRead && 'speechSynthesis' in window) {
+      const utt = new SpeechSynthesisUtterance(flashcard.question)
+      try {
+        utt.rate = parseFloat(localStorage.getItem('tts-speed')) || 1
+      } catch {}
+      window.speechSynthesis.speak(utt)
+    }
+  }, [flashcard.id, autoRead])
+
   const handleFlip = () => {
-    if (!flipped) setFlipped(true)
+    if (!flipped) {
+      setFlipped(true)
+      if (autoRead && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel()
+        setTimeout(() => {
+          const utt = new SpeechSynthesisUtterance(flashcard.answer)
+          try { utt.rate = parseFloat(localStorage.getItem('tts-speed')) || 1 } catch {}
+          window.speechSynthesis.speak(utt)
+        }, 600)
+      }
+    }
   }
 
   const handleResult = (correct) => {
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel()
     onResult({ cardId: flashcard.id, correct })
     setFlipped(false)
   }
@@ -39,7 +67,12 @@ function Flashcard({ flashcard, onResult }) {
           onClick={handleFlip}
         >
           <div className="flex items-center justify-between mb-4">
-            <span className="text-xs text-gray-500">Question</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500">Question</span>
+              <div onClick={(e) => e.stopPropagation()}>
+                <TextToSpeech text={flashcard.question} size="small" />
+              </div>
+            </div>
             <DifficultyDots level={flashcard.difficulty} />
           </div>
           <div className="flex-1 flex items-center justify-center px-4">
@@ -55,8 +88,9 @@ function Flashcard({ flashcard, onResult }) {
           className="absolute inset-0 bg-[#1e293b] border border-green-500/30 rounded-2xl p-6 flex flex-col"
           style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
         >
-          <div className="mb-4">
+          <div className="flex items-center gap-2 mb-4">
             <span className="text-xs text-green-400">Answer</span>
+            <TextToSpeech text={flashcard.answer} size="small" />
           </div>
           <div className="flex-1 flex items-center justify-center px-4">
             <p className="text-lg sm:text-xl text-white text-center leading-relaxed">

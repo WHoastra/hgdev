@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import TextToSpeech from './TextToSpeech'
 
 const letters = ['A', 'B', 'C', 'D']
 
@@ -57,9 +58,12 @@ function QuizQuestion({ question, questionNumber, totalQuestions, onAnswer }) {
       </div>
 
       {/* Question */}
-      <h2 className="text-xl sm:text-2xl font-bold text-white mb-8 leading-snug">
-        {question.question}
-      </h2>
+      <div className="flex items-start gap-3 mb-8">
+        <h2 className="text-xl sm:text-2xl font-bold text-white leading-snug flex-1">
+          {question.question}
+        </h2>
+        <TextToSpeech text={question.question} size="small" />
+      </div>
 
       {/* Options */}
       <div className="space-y-3 mb-8">
@@ -81,7 +85,8 @@ function QuizQuestion({ question, questionNumber, totalQuestions, onAnswer }) {
         <div className="bg-[#1e293b] border border-gray-700 rounded-lg p-5 mb-8 animate-fade-in">
           <div className="flex items-start gap-3">
             <span className="text-lg shrink-0">{isCorrect ? '✅' : '💡'}</span>
-            <p className="text-sm text-gray-300 leading-relaxed">{question.explanation}</p>
+            <p className="text-sm text-gray-300 leading-relaxed flex-1">{question.explanation}</p>
+            <TextToSpeech text={question.explanation} size="small" />
           </div>
         </div>
       )}

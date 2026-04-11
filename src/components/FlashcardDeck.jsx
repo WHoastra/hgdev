@@ -65,6 +65,9 @@ function FlashcardDeck({ flashcards, progressData, moduleId, courseId }) {
   const [sessionCorrect, setSessionCorrect] = useState(0)
   const [streak, setStreak] = useState(0)
   const [done, setDone] = useState(false)
+  const [autoRead, setAutoRead] = useState(() => {
+    try { return localStorage.getItem('tts-autoread') === 'true' } catch { return false }
+  })
 
   const historyRef = useRef([])
   const windowRef = useRef([])
@@ -214,10 +217,23 @@ function FlashcardDeck({ flashcards, progressData, moduleId, courseId }) {
       </div>
 
       {/* Card */}
-      <Flashcard key={currentCard.id + '-' + cardCount} flashcard={currentCard} onResult={handleResult} />
+      <Flashcard key={currentCard.id + '-' + cardCount} flashcard={currentCard} onResult={handleResult} autoRead={autoRead} />
 
-      {/* Done button */}
-      <div className="text-center mt-8">
+      {/* Controls */}
+      <div className="flex items-center justify-center gap-4 mt-8">
+        <label className="inline-flex items-center gap-2 cursor-pointer text-xs text-gray-500">
+          <input
+            type="checkbox"
+            checked={autoRead}
+            onChange={(e) => {
+              setAutoRead(e.target.checked)
+              try { localStorage.setItem('tts-autoread', e.target.checked.toString()) } catch {}
+            }}
+            className="sr-only peer"
+          />
+          <div className="w-8 h-4 bg-gray-700 rounded-full peer peer-checked:bg-green-600 relative transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-3 after:h-3 after:bg-white after:rounded-full after:transition-transform peer-checked:after:translate-x-4" />
+          Auto-read
+        </label>
         <button
           onClick={handleDone}
           className="text-xs text-gray-600 hover:text-gray-400 transition-colors"
