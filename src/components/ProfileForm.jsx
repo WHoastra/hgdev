@@ -54,11 +54,37 @@ function ProfileForm({ profile, userId, onSaved }) {
   const autoSave = async (data) => {
     setSaving(true)
     const isComplete = calcCompletion(data) >= 100
-    const { error } = await supabase.from('user_profiles').update({
-      ...data, profile_complete: isComplete, updated_at: new Date().toISOString(),
-    }).eq('user_id', userId)
+    const payload = {
+      display_name: data.display_name || null,
+      bio: data.bio || null,
+      location: data.location || null,
+      parish: data.parish || null,
+      age_range: data.age_range || null,
+      experience_level: data.experience_level || null,
+      goals: data.goals || [],
+      interests: data.interests || [],
+      skills: data.skills || [],
+      availability: data.availability || null,
+      open_to_mentor: data.open_to_mentor || false,
+      looking_for_mentor: data.looking_for_mentor || false,
+      open_to_collaborate: data.open_to_collaborate || false,
+      contact_preference: data.contact_preference || null,
+      contact_info: data.contact_info || null,
+      github_url: data.github_url || null,
+      linkedin_url: data.linkedin_url || null,
+      portfolio_url: data.portfolio_url || null,
+      is_public: data.is_public !== false,
+      profile_complete: isComplete,
+      updated_at: new Date().toISOString(),
+    }
+    const { error } = await supabase.from('user_profiles').update(payload).eq('user_id', userId)
     setSaving(false)
-    if (!error) { showMsg('Saved'); if (onSaved) onSaved() }
+    if (error) {
+      showMsg('Error saving')
+    } else {
+      showMsg('Saved')
+      if (onSaved) onSaved()
+    }
   }
 
   const showMsg = (msg) => {
