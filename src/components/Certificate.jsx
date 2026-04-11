@@ -76,6 +76,48 @@ function Certificate({ certificate, forPrint }) {
               <p className="text-xs text-gray-400">HGDev Program</p>
               <p className="text-[10px] text-gray-600">Homegrown Developers</p>
             </div>
+
+            {/* Gold Seal */}
+            <div className="relative w-24 h-24 flex items-center justify-center">
+              <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full">
+                {/* Outer starburst */}
+                {Array.from({ length: 24 }, (_, i) => {
+                  const angle = (i * 15) * Math.PI / 180
+                  const r1 = i % 2 === 0 ? 48 : 42
+                  const x = 50 + r1 * Math.cos(angle)
+                  const y = 50 + r1 * Math.sin(angle)
+                  return `${x},${y}`
+                }).join(' ').split(' ').length && (
+                  <polygon
+                    points={Array.from({ length: 24 }, (_, i) => {
+                      const angle = (i * 15) * Math.PI / 180
+                      const r = i % 2 === 0 ? 48 : 40
+                      return `${50 + r * Math.cos(angle)},${50 + r * Math.sin(angle)}`
+                    }).join(' ')}
+                    fill="none"
+                    stroke="#d4a017"
+                    strokeWidth="1.5"
+                  />
+                )}
+                {/* Inner circle */}
+                <circle cx="50" cy="50" r="34" fill="none" stroke="#d4a017" strokeWidth="1" />
+                <circle cx="50" cy="50" r="31" fill="none" stroke="#d4a017" strokeWidth="0.5" />
+                {/* Curved text - top */}
+                <defs>
+                  <path id="topArc" d="M 50,50 m -22,0 a 22,22 0 1,1 44,0" />
+                  <path id="bottomArc" d="M 50,50 m 22,0 a 22,22 0 1,1 -44,0" />
+                </defs>
+                <text fontSize="5" fill="#d4a017" fontWeight="bold" letterSpacing="1.5">
+                  <textPath href="#topArc" startOffset="50%" textAnchor="middle">VERIFIED</textPath>
+                </text>
+                <text fontSize="4.5" fill="#d4a017" letterSpacing="1">
+                  <textPath href="#bottomArc" startOffset="50%" textAnchor="middle">COMPLETION</textPath>
+                </text>
+                {/* Center star */}
+                <polygon points="50,38 52,46 60,46 54,50 56,58 50,54 44,58 46,50 40,46 48,46" fill="#d4a017" opacity="0.9" />
+              </svg>
+            </div>
+
             <div className="text-center w-40">
               <div className="w-full h-px bg-gray-700 mb-1" />
               <p className="text-xs text-gray-400">Whoastra Labs</p>
