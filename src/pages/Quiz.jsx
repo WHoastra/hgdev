@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { useUserId } from '../lib/useUserId'
 import QuizQuestion from '../components/QuizQuestion'
 import QuizResults from '../components/QuizResults'
 
@@ -18,6 +19,7 @@ function shuffleOptions(question) {
 
 function Quiz() {
   const { moduleId } = useParams()
+  const { userId } = useUserId()
   const [mod, setMod] = useState(null)
   const [course, setCourse] = useState(null)
   const [questions, setQuestions] = useState([])
@@ -82,6 +84,7 @@ function Quiz() {
 
       await supabase.from('quiz_attempts').insert({
         module_id: moduleId,
+        user_id: userId,
         score,
         total,
         percentage,
@@ -117,6 +120,7 @@ function Quiz() {
               .from('progress')
               .select('id, status')
               .eq('lesson_id', lessonId)
+              .eq('user_id', userId)
               .limit(1)
 
             if (existing && existing.length > 0) {
@@ -130,6 +134,7 @@ function Quiz() {
             } else {
               await supabase.from('progress').insert({
                 lesson_id: lessonId,
+                user_id: userId,
                 status: 'complete',
                 completed_at: new Date().toISOString(),
               })

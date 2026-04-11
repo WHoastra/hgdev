@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { useUserId } from '../lib/useUserId'
 import StatCard from '../components/StatCard'
 import ProgressBar from '../components/ProgressBar'
 import CompletionRing from '../components/CompletionRing'
@@ -49,16 +50,19 @@ const categoryColors = {
 
 function Progress() {
   const navigate = useNavigate()
+  const { userId, isLoaded } = useUserId()
   const [loading, setLoading] = useState(true)
   const [rawData, setRawData] = useState(null)
 
   useEffect(() => {
+    if (!isLoaded || !userId) return
+
     async function fetchAll() {
       const [courses, modules, lessons, progress] = await Promise.all([
         supabase.from('courses').select('*').order('created_at'),
         supabase.from('modules').select('*').order('sort_order'),
         supabase.from('lessons').select('*').order('sort_order'),
-        supabase.from('progress').select('*'),
+        supabase.from('progress').select('*').eq('user_id', userId),
       ])
       setRawData({
         courses: courses.data || [],
@@ -69,7 +73,7 @@ function Progress() {
       setLoading(false)
     }
     fetchAll()
-  }, [])
+  }, [userId, isLoaded])
 
   const computed = useMemo(() => {
     if (!rawData) return null

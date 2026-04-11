@@ -328,7 +328,6 @@ export async function seedAllFlashcards() {
 
   console.log('Inserting flashcards...')
   const allCards = []
-  const allProgress = []
 
   for (const [moduleTitle, cards] of Object.entries(data)) {
     const moduleId = m[moduleTitle]
@@ -338,36 +337,21 @@ export async function seedAllFlashcards() {
     }
     for (let i = 0; i < cards.length; i++) {
       const c = cards[i]
-      const cardId = crypto.randomUUID()
       allCards.push({
-        id: cardId,
+        id: crypto.randomUUID(),
         module_id: moduleId,
         question: c.q,
         answer: c.a,
         difficulty: c.d,
         sort_order: i + 1,
       })
-      allProgress.push({
-        id: crypto.randomUUID(),
-        flashcard_id: cardId,
-        times_seen: 0,
-        times_correct: 0,
-        comfort_level: 1,
-      })
     }
   }
 
-  // Insert in batches to avoid payload limits
   for (let i = 0; i < allCards.length; i += 50) {
     const batch = allCards.slice(i, i + 50)
     const { error } = await supabase.from('flashcards').insert(batch)
     if (error) { console.error('Error inserting flashcards batch:', error); throw error }
-  }
-
-  for (let i = 0; i < allProgress.length; i += 50) {
-    const batch = allProgress.slice(i, i + 50)
-    const { error } = await supabase.from('flashcard_progress').insert(batch)
-    if (error) { console.error('Error inserting progress batch:', error); throw error }
   }
 
   const modulesWithCards = new Set(allCards.map((c) => c.module_id)).size

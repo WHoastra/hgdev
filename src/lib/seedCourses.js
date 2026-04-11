@@ -316,17 +316,6 @@ export async function seedAllCourses() {
   const { error: lessonError } = await supabase.from('lessons').insert(lessonRows)
   if (lessonError) { console.error('Error inserting lessons:', lessonError); throw lessonError }
 
-  // --- INSERT PROGRESS ---
-  console.log('Creating progress records...')
-  const progressRows = lessonRows.map((lesson) => ({
-    id: crypto.randomUUID(),
-    lesson_id: lesson.id,
-    status: 'not_started',
-  }))
-
-  const { error: progressError } = await supabase.from('progress').insert(progressRows)
-  if (progressError) { console.error('Error inserting progress:', progressError); throw progressError }
-
   const summary = {
     courses: courseRows.length,
     modules: moduleRows.length,

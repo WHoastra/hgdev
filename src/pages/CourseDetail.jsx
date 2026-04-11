@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { useUserId } from '../lib/useUserId'
 import ProgressBar from '../components/ProgressBar'
 
 function StatusIcon({ status }) {
@@ -41,6 +42,7 @@ function scoreColor(pct) {
 function CourseDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { userId, isLoaded } = useUserId()
   const [course, setCourse] = useState(null)
   const [modules, setModules] = useState([])
   const [expanded, setExpanded] = useState({})
@@ -48,6 +50,7 @@ function CourseDetail() {
   const [overallProgress, setOverallProgress] = useState({ completed: 0, total: 0 })
 
   useEffect(() => {
+    if (!isLoaded || !userId) return
     async function fetchCourse() {
       const { data: courseData, error: courseError } = await supabase
         .from('courses')
@@ -85,6 +88,7 @@ function CourseDetail() {
             .from('progress')
             .select('*')
             .eq('lesson_id', lesson.id)
+            .eq('user_id', userId)
             .limit(1)
 
           const progress = progressData && progressData.length > 0
@@ -107,6 +111,7 @@ function CourseDetail() {
           .from('quiz_attempts')
           .select('percentage')
           .eq('module_id', mod.id)
+          .eq('user_id', userId)
           .order('percentage', { ascending: false })
           .limit(1)
 
@@ -122,6 +127,7 @@ function CourseDetail() {
         const { data: fcSessions } = await supabase
           .from('flashcard_sessions')
           .select('session_percentage')
+          .eq('user_id', userId)
           .eq('module_id', mod.id)
           .order('session_percentage', { ascending: false })
           .limit(1)
@@ -147,7 +153,7 @@ function CourseDetail() {
     }
 
     fetchCourse()
-  }, [id])
+  }, [id, userId, isLoaded])
 
   const toggleModule = (moduleId) => {
     setExpanded((prev) => ({ ...prev, [moduleId]: !prev[moduleId] }))

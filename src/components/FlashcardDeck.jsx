@@ -52,7 +52,7 @@ function pickNextCard(cards, progressMap, history, successRate) {
   return scored[0]?.card || cards[0]
 }
 
-function FlashcardDeck({ flashcards, progressData, moduleId, courseId }) {
+function FlashcardDeck({ flashcards, progressData, moduleId, courseId, userId }) {
   const [progressMap, setProgressMap] = useState(() => {
     const map = {}
     for (const p of progressData) map[p.flashcard_id] = p
@@ -120,6 +120,7 @@ function FlashcardDeck({ flashcards, progressData, moduleId, courseId }) {
     } else {
       const { data } = await supabase.from('flashcard_progress').insert({
         flashcard_id: cardId,
+        user_id: userId,
         times_seen: newSeen,
         times_correct: newCorrect,
         last_seen: new Date().toISOString(),
@@ -145,6 +146,7 @@ function FlashcardDeck({ flashcards, progressData, moduleId, courseId }) {
     const pct = total > 0 ? Math.round((sessionCorrect / total) * 100) : 0
     await supabase.from('flashcard_sessions').insert({
       module_id: moduleId,
+      user_id: userId,
       total_cards: total,
       correct_count: sessionCorrect,
       session_percentage: pct,

@@ -99,7 +99,6 @@ export async function seedTerminalCourse() {
   console.log('Inserting modules and lessons...')
   const moduleRows = []
   const lessonRows = []
-  const progressRows = []
   const moduleIdMap = {}
 
   for (const mod of modulesData) {
@@ -109,7 +108,6 @@ export async function seedTerminalCourse() {
     for (const lesson of mod.lessons) {
       const lessonId = crypto.randomUUID()
       lessonRows.push({ id: lessonId, module_id: moduleId, title: lesson.title, content: lesson.content, sort_order: lesson.sort_order })
-      progressRows.push({ id: crypto.randomUUID(), lesson_id: lessonId, status: 'not_started' })
     }
   }
 
@@ -117,8 +115,6 @@ export async function seedTerminalCourse() {
   if (mErr) throw mErr
   const { error: lErr } = await supabase.from('lessons').insert(lessonRows)
   if (lErr) throw lErr
-  const { error: pErr } = await supabase.from('progress').insert(progressRows)
-  if (pErr) throw pErr
 
   // --- QUIZ QUESTIONS ---
   console.log('Inserting quiz questions...')
@@ -238,21 +234,16 @@ export async function seedTerminalCourse() {
   }
 
   const cardRows = []
-  const cardProgressRows = []
   for (const [modTitle, cards] of Object.entries(flashcardData)) {
     const modId = moduleIdMap[modTitle]
     for (let i = 0; i < cards.length; i++) {
       const c = cards[i]
-      const cardId = crypto.randomUUID()
-      cardRows.push({ id: cardId, module_id: modId, question: c.q, answer: c.a, difficulty: c.d, sort_order: i + 1 })
-      cardProgressRows.push({ id: crypto.randomUUID(), flashcard_id: cardId, times_seen: 0, times_correct: 0, comfort_level: 1 })
+      cardRows.push({ id: crypto.randomUUID(), module_id: modId, question: c.q, answer: c.a, difficulty: c.d, sort_order: i + 1 })
     }
   }
 
   const { error: fcErr } = await supabase.from('flashcards').insert(cardRows)
   if (fcErr) throw fcErr
-  const { error: fpErr } = await supabase.from('flashcard_progress').insert(cardProgressRows)
-  if (fpErr) throw fpErr
 
   const summary = {
     course: 1,

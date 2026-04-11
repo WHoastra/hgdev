@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { useUserId } from '../lib/useUserId'
 import StatusToggle from '../components/StatusToggle'
 import TextToSpeech from '../components/TextToSpeech'
 
 function LessonDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { userId, isLoaded } = useUserId()
   const [lesson, setLesson] = useState(null)
   const [module, setModule] = useState(null)
   const [course, setCourse] = useState(null)
@@ -21,6 +23,8 @@ function LessonDetail() {
   const saveMessageTimer = useRef(null)
 
   useEffect(() => {
+    if (!isLoaded || !userId) return
+
     async function fetchLesson() {
       const { data: lessonData, error: lessonError } = await supabase
         .from('lessons')
@@ -78,6 +82,7 @@ function LessonDetail() {
         .from('progress')
         .select('*')
         .eq('lesson_id', id)
+        .eq('user_id', userId)
         .limit(1)
 
       const progressRecord = progressData && progressData.length > 0 ? progressData[0] : null
@@ -97,7 +102,7 @@ function LessonDetail() {
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current)
       if (saveMessageTimer.current) clearTimeout(saveMessageTimer.current)
     }
-  }, [id])
+  }, [id, userId, isLoaded])
 
   const showSaveMessage = useCallback((msg) => {
     setSaveMessage(msg)
@@ -115,7 +120,7 @@ function LessonDetail() {
     } else {
       const { data, error } = await supabase
         .from('progress')
-        .insert({ lesson_id: id, status: 'not_started', ...fields })
+        .insert({ lesson_id: id, user_id: userId, status: 'not_started', ...fields })
         .select()
         .single()
       if (error) return false

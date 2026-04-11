@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { useUserId } from '../lib/useUserId'
 import FlashcardDeck from '../components/FlashcardDeck'
 
 function Flashcards() {
   const { moduleId } = useParams()
+  const { userId, isLoaded } = useUserId()
   const [mod, setMod] = useState(null)
   const [course, setCourse] = useState(null)
   const [flashcards, setFlashcards] = useState([])
@@ -12,6 +14,8 @@ function Flashcards() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (!isLoaded || !userId) return
+
     async function fetchData() {
       const { data: moduleData } = await supabase
         .from('modules')
@@ -43,6 +47,7 @@ function Flashcards() {
           .from('flashcard_progress')
           .select('*')
           .in('flashcard_id', cardIds)
+          .eq('user_id', userId)
         setProgressData(progress || [])
       }
 
@@ -50,7 +55,7 @@ function Flashcards() {
     }
 
     fetchData()
-  }, [moduleId])
+  }, [moduleId, userId, isLoaded])
 
   if (loading) {
     return (
@@ -106,6 +111,7 @@ function Flashcards() {
           progressData={progressData}
           moduleId={moduleId}
           courseId={course?.id}
+          userId={userId}
         />
       </div>
     </div>
