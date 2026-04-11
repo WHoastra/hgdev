@@ -32,6 +32,12 @@ const difficultyColors = {
   advanced: 'bg-red-900 text-red-300',
 }
 
+function scoreColor(pct) {
+  if (pct >= 80) return 'text-green-400'
+  if (pct >= 60) return 'text-yellow-400'
+  return 'text-red-400'
+}
+
 function CourseDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -90,7 +96,28 @@ function CourseDetail() {
           if (progress.status === 'complete') completedLessons++
         }
 
-        modulesWithLessons.push({ ...mod, lessons: lessonsWithProgress })
+        // Check if quiz exists for this module
+        const { count: quizCount } = await supabase
+          .from('quiz_questions')
+          .select('id', { count: 'exact', head: true })
+          .eq('module_id', mod.id)
+
+        // Get best quiz attempt
+        const { data: attempts } = await supabase
+          .from('quiz_attempts')
+          .select('percentage')
+          .eq('module_id', mod.id)
+          .order('percentage', { ascending: false })
+          .limit(1)
+
+        const bestScore = attempts && attempts.length > 0 ? attempts[0].percentage : null
+
+        modulesWithLessons.push({
+          ...mod,
+          lessons: lessonsWithProgress,
+          hasQuiz: (quizCount || 0) > 0,
+          bestScore,
+        })
         expandState[mod.id] = true
       }
 
@@ -212,6 +239,26 @@ function CourseDetail() {
                       <span className="text-sm text-gray-300">{lesson.title}</span>
                     </button>
                   ))}
+
+                  {mod.hasQuiz && (
+                    <div className="border-t border-gray-700 px-5 py-3 flex items-center justify-between">
+                      <button
+                        onClick={() => navigate(`/quiz/${mod.id}`)}
+                        className="inline-flex items-center gap-2 text-sm font-medium text-green-400 border border-green-500/50 rounded-lg px-4 py-2
+                          hover:bg-green-500/10 transition-colors"
+                      >
+                        Take Module Quiz
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                      {mod.bestScore !== null && (
+                        <span className={`text-xs font-medium ${scoreColor(mod.bestScore)}`}>
+                          Best: {mod.bestScore}%
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
