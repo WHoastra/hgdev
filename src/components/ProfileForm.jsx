@@ -42,14 +42,20 @@ function ProfileForm({ profile, userId, onSaved }) {
   const [citySuggestions, setCitySuggestions] = useState([])
   const saveTimer = useRef(null)
   const msgTimer = useRef(null)
+  const formRef = useRef(form)
 
   const completion = calcCompletion(form)
 
-  const update = useCallback((field, value) => {
-    setForm((prev) => ({ ...prev, [field]: value }))
+  // Keep ref in sync
+  useEffect(() => { formRef.current = form }, [form])
+
+  const update = (field, value) => {
+    const next = { ...formRef.current, [field]: value }
+    setForm(next)
+    formRef.current = next
     if (saveTimer.current) clearTimeout(saveTimer.current)
-    saveTimer.current = setTimeout(() => autoSave({ ...form, [field]: value }), 2000)
-  }, [form])
+    saveTimer.current = setTimeout(() => autoSave(formRef.current), 2000)
+  }
 
   const autoSave = async (data) => {
     setSaving(true)
@@ -80,7 +86,8 @@ function ProfileForm({ profile, userId, onSaved }) {
     const { error } = await supabase.from('user_profiles').update(payload).eq('user_id', userId)
     setSaving(false)
     if (error) {
-      showMsg('Error saving')
+      console.error('Profile save error:', error)
+      showMsg('Error: ' + error.message)
     } else {
       showMsg('Saved')
       if (onSaved) onSaved()
@@ -95,7 +102,7 @@ function ProfileForm({ profile, userId, onSaved }) {
 
   const handleSave = async () => {
     if (saveTimer.current) clearTimeout(saveTimer.current)
-    await autoSave(form)
+    await autoSave(formRef.current)
   }
 
   const toggleArrayItem = (field, item) => {
