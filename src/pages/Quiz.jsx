@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useUserId } from '../lib/useUserId'
 import QuizQuestion from '../components/QuizQuestion'
 import QuizResults from '../components/QuizResults'
+import CoachToggle from '../components/CoachToggle'
 
 function shuffleOptions(question) {
   const indices = [0, 1, 2, 3]
@@ -247,6 +248,14 @@ function Quiz() {
           </>
         )}
       </div>
+
+      {mod && course && questions.length > 0 && !showResults && (
+        <CoachToggle
+          contextType="quiz"
+          contextId={moduleId}
+          contextData={{ moduleTitle: mod.title, courseTitle: course.title, currentQuestion: questions[currentIndex]?.question || '' }}
+        />
+      )}
     </div>
   )
 }

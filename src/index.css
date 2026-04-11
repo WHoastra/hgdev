@@ -124,6 +124,12 @@ body {
   @page { size: 11in 8.5in landscape; margin: 0; }
 }
 
+/* Coach slide-in */
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
 /* Feed column scrollbar */
 .feed-scroll::-webkit-scrollbar {
   width: 4px;

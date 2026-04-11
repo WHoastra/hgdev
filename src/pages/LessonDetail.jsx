@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useUserId } from '../lib/useUserId'
 import StatusToggle from '../components/StatusToggle'
 import { postCelebration } from '../lib/feed'
+import CoachToggle from '../components/CoachToggle'
 import TextToSpeech from '../components/TextToSpeech'
 
 function LessonDetail() {
@@ -301,6 +302,14 @@ function LessonDetail() {
           </button>
         </div>
       </div>
+
+      {lesson && module && course && (
+        <CoachToggle
+          contextType="lesson"
+          contextId={lesson.id}
+          contextData={{ title: lesson.title, moduleTitle: module.title, courseTitle: course.title, contentSummary: (lesson.content || '').substring(0, 300) }}
+        />
+      )}
     </div>
   )
 }

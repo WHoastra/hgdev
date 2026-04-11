@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useUserId } from '../lib/useUserId'
 import FlashcardDeck from '../components/FlashcardDeck'
+import CoachToggle from '../components/CoachToggle'
 
 function Flashcards() {
   const { moduleId } = useParams()
@@ -114,6 +115,14 @@ function Flashcards() {
           userId={userId}
         />
       </div>
+
+      {mod && course && (
+        <CoachToggle
+          contextType="flashcard"
+          contextId={moduleId}
+          contextData={{ moduleTitle: mod.title, courseTitle: course.title, currentQuestion: flashcards[0]?.question || '' }}
+        />
+      )}
     </div>
   )
 }
