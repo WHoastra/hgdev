@@ -5,6 +5,7 @@ import { useUserId } from '../lib/useUserId'
 import StatusToggle from '../components/StatusToggle'
 import { postCelebration } from '../lib/feed'
 import { useCoach } from '../lib/CoachContext'
+import { useBadges } from '../lib/BadgeProvider'
 import TextToSpeech from '../components/TextToSpeech'
 import LessonChat from '../components/LessonChat'
 
@@ -21,6 +22,7 @@ function LessonDetail() {
   const [prevLesson, setPrevLesson] = useState(null)
   const [nextLesson, setNextLesson] = useState(null)
   const { setCoachContext } = useCoach()
+  const { triggerBadgeCheck } = useBadges()
 
   useEffect(() => {
     if (!isLoaded || !userId) return
@@ -135,6 +137,8 @@ function LessonDetail() {
       fields.completed_at = null
     }
     await upsertProgress(fields)
+
+    triggerBadgeCheck()
 
     // Check if entire module is now complete → post celebration
     if (newStatus === 'complete' && module && course) {

@@ -114,6 +114,13 @@ function Navbar() {
                   >
                     Profile
                   </Link>
+                  <Link
+                    to="/badges"
+                    onClick={() => setDropdownOpen(false)}
+                    className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700/50 transition-colors"
+                  >
+                    Badges
+                  </Link>
                   <div className="border-t border-gray-700 my-1" />
                   <button
                     onClick={handleSignOut}

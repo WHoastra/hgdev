@@ -124,6 +124,13 @@ body {
   @page { size: 11in 8.5in landscape; margin: 0; }
 }
 
+/* Legendary badge shimmer */
+@keyframes badge-shimmer {
+  0%, 100% { border-color: #f59e0b60; box-shadow: 0 0 12px #f59e0b20; }
+  50% { border-color: #fbbf2480; box-shadow: 0 0 20px #f59e0b40; }
+}
+.badge-legendary { animation: badge-shimmer 2s ease-in-out infinite; }
+
 /* Coach slide-in */
 @keyframes slideInRight {
   from { transform: translateX(100%); }
