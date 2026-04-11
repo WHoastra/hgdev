@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { useUserId } from '../lib/useUserId'
 import SkillTag from '../components/SkillTag'
+import NewMessageModal from '../components/NewMessageModal'
 
 const expLabels = {
   brand_new: 'Brand New',
@@ -14,9 +16,12 @@ const expLabels = {
 
 function PublicProfile() {
   const { userId } = useParams()
+  const { userId: currentUserId } = useUserId()
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
+  const [showMessageModal, setShowMessageModal] = useState(false)
+  const isOwnProfile = currentUserId === userId
 
   useEffect(() => {
     async function fetchProfile() {
@@ -166,12 +171,20 @@ function PublicProfile() {
           </div>
         )}
 
-        {/* Connect (future) */}
-        <div className="text-center">
-          <button disabled className="px-6 py-2.5 border border-gray-700 text-gray-500 text-sm rounded-lg cursor-not-allowed" title="Coming soon — community connections">
-            Connect (coming soon)
-          </button>
-        </div>
+        {/* Message */}
+        {!isOwnProfile && (
+          <div className="text-center">
+            <button onClick={() => setShowMessageModal(true)}
+              className="inline-flex items-center gap-2 px-6 py-2.5 border border-green-500/50 text-green-400 text-sm font-medium rounded-lg hover:bg-green-500/10 transition-colors">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              Send Message
+            </button>
+          </div>
+        )}
+
+        <NewMessageModal isOpen={showMessageModal} onClose={() => setShowMessageModal(false)} prefillUserId={userId} currentUserId={currentUserId} />
       </div>
     </div>
   )
