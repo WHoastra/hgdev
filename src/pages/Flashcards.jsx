@@ -3,11 +3,12 @@ import { useParams, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useUserId } from '../lib/useUserId'
 import FlashcardDeck from '../components/FlashcardDeck'
-import CoachToggle from '../components/CoachToggle'
+import { useCoach } from '../lib/CoachContext'
 
 function Flashcards() {
   const { moduleId } = useParams()
   const { userId, isLoaded } = useUserId()
+  const { setCoachContext } = useCoach()
   const [mod, setMod] = useState(null)
   const [course, setCourse] = useState(null)
   const [flashcards, setFlashcards] = useState([])
@@ -57,6 +58,12 @@ function Flashcards() {
 
     fetchData()
   }, [moduleId, userId, isLoaded])
+
+  useEffect(() => {
+    if (mod && course) {
+      setCoachContext('flashcard', moduleId, { moduleTitle: mod.title, courseTitle: course.title, currentQuestion: flashcards[0]?.question || '' })
+    }
+  }, [mod, course, flashcards])
 
   if (loading) {
     return (
@@ -116,13 +123,6 @@ function Flashcards() {
         />
       </div>
 
-      {mod && course && (
-        <CoachToggle
-          contextType="flashcard"
-          contextId={moduleId}
-          contextData={{ moduleTitle: mod.title, courseTitle: course.title, currentQuestion: flashcards[0]?.question || '' }}
-        />
-      )}
     </div>
   )
 }

@@ -4,8 +4,9 @@ import { supabase } from '../lib/supabase'
 import { useUserId } from '../lib/useUserId'
 import StatusToggle from '../components/StatusToggle'
 import { postCelebration } from '../lib/feed'
-import CoachToggle from '../components/CoachToggle'
+import { useCoach } from '../lib/CoachContext'
 import TextToSpeech from '../components/TextToSpeech'
+import LessonChat from '../components/LessonChat'
 
 function LessonDetail() {
   const { id } = useParams()
@@ -15,14 +16,11 @@ function LessonDetail() {
   const [module, setModule] = useState(null)
   const [course, setCourse] = useState(null)
   const [progress, setProgress] = useState(null)
-  const [notes, setNotes] = useState('')
   const [status, setStatus] = useState('not_started')
   const [loading, setLoading] = useState(true)
-  const [saveMessage, setSaveMessage] = useState(null)
   const [prevLesson, setPrevLesson] = useState(null)
   const [nextLesson, setNextLesson] = useState(null)
-  const autoSaveTimer = useRef(null)
-  const saveMessageTimer = useRef(null)
+  const { setCoachContext } = useCoach()
 
   useEffect(() => {
     if (!isLoaded || !userId) return
@@ -93,24 +91,21 @@ function LessonDetail() {
       setModule(moduleData)
       setCourse(courseData)
       setProgress(progressRecord)
-      setNotes(progressRecord?.notes || '')
       setStatus(progressRecord?.status || 'not_started')
       setLoading(false)
     }
 
     fetchLesson()
 
-    return () => {
-      if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current)
-      if (saveMessageTimer.current) clearTimeout(saveMessageTimer.current)
-    }
   }, [id, userId, isLoaded])
 
-  const showSaveMessage = useCallback((msg) => {
-    setSaveMessage(msg)
-    if (saveMessageTimer.current) clearTimeout(saveMessageTimer.current)
-    saveMessageTimer.current = setTimeout(() => setSaveMessage(null), 2000)
-  }, [])
+  // Set global coach context
+  useEffect(() => {
+    if (lesson && module && course) {
+      setCoachContext('general', null, { topic: `Reading lesson: ${lesson.title}` })
+    }
+  }, [lesson, module, course])
+
 
   const upsertProgress = useCallback(async (fields) => {
     if (progress) {
@@ -152,23 +147,6 @@ function LessonDetail() {
         }
       }
     }
-  }
-
-  const handleNotesChange = (e) => {
-    const value = e.target.value
-    setNotes(value)
-
-    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current)
-    autoSaveTimer.current = setTimeout(async () => {
-      const ok = await upsertProgress({ notes: value })
-      if (ok) showSaveMessage('Auto-saved')
-    }, 3000)
-  }
-
-  const handleSaveNotes = async () => {
-    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current)
-    const ok = await upsertProgress({ notes })
-    if (ok) showSaveMessage('Saved!')
   }
 
   const handleCompleteAndNext = async () => {
@@ -240,38 +218,11 @@ function LessonDetail() {
           </div>
         )}
 
-        {/* Notes Section */}
-        <div className="bg-[#1e293b] rounded-lg border border-gray-700 p-6 sm:p-8 mb-8">
-          <div className="flex items-center justify-between gap-3 mb-4">
-            <div className="flex items-center gap-3">
-              <h2 className="text-lg font-semibold text-white">My Notes</h2>
-              {notes && <TextToSpeech text={notes} label="Read my notes" size="small" />}
-            </div>
-            {saveMessage && (
-              <span className="text-sm text-green-400 animate-pulse">
-                {saveMessage}
-              </span>
-            )}
-          </div>
-
-          <textarea
-            value={notes}
-            onChange={handleNotesChange}
-            placeholder="Write your notes and key takeaways here..."
-            rows={6}
-            className="w-full bg-[#0f172a] text-gray-300 border border-gray-700 rounded-lg p-4
-              placeholder-gray-600 resize-y text-sm leading-6
-              focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500
-              transition-colors"
-          />
-
-          <button
-            onClick={handleSaveNotes}
-            className="mt-4 px-5 py-2 bg-green-600 text-white text-sm font-medium rounded-lg
-              hover:bg-green-500 transition-colors"
-          >
-            Save Notes
-          </button>
+        {/* Lesson Discussion */}
+        <div className="mb-8">
+          {lesson && module && course && (
+            <LessonChat lesson={lesson} module={module} course={course} />
+          )}
         </div>
 
         {/* Navigation */}
@@ -302,14 +253,6 @@ function LessonDetail() {
           </button>
         </div>
       </div>
-
-      {lesson && module && course && (
-        <CoachToggle
-          contextType="lesson"
-          contextId={lesson.id}
-          contextData={{ title: lesson.title, moduleTitle: module.title, courseTitle: course.title, contentSummary: (lesson.content || '').substring(0, 300) }}
-        />
-      )}
     </div>
   )
 }

@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useUserId } from '../lib/useUserId'
 import QuizQuestion from '../components/QuizQuestion'
 import QuizResults from '../components/QuizResults'
-import CoachToggle from '../components/CoachToggle'
+import { useCoach } from '../lib/CoachContext'
 
 function shuffleOptions(question) {
   const indices = [0, 1, 2, 3]
@@ -21,6 +21,7 @@ function shuffleOptions(question) {
 function Quiz() {
   const { moduleId } = useParams()
   const { userId } = useUserId()
+  const { setCoachContext } = useCoach()
   const [mod, setMod] = useState(null)
   const [course, setCourse] = useState(null)
   const [questions, setQuestions] = useState([])
@@ -68,6 +69,13 @@ function Quiz() {
   useEffect(() => {
     initQuiz()
   }, [initQuiz])
+
+  // Set coach context
+  useEffect(() => {
+    if (mod && course && questions.length > 0) {
+      setCoachContext('quiz', moduleId, { moduleTitle: mod.title, courseTitle: course.title, currentQuestion: questions[currentIndex]?.question || '' })
+    }
+  }, [mod, course, currentIndex, questions])
 
   const handleAnswer = async (answer) => {
     const newAnswers = [...answers, answer]
@@ -249,13 +257,6 @@ function Quiz() {
         )}
       </div>
 
-      {mod && course && questions.length > 0 && !showResults && (
-        <CoachToggle
-          contextType="quiz"
-          contextId={moduleId}
-          contextData={{ moduleTitle: mod.title, courseTitle: course.title, currentQuestion: questions[currentIndex]?.question || '' }}
-        />
-      )}
     </div>
   )
 }

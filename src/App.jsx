@@ -4,6 +4,8 @@ import { dark } from '@clerk/themes'
 import { BrowserRouter, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import ProtectedRoute from './components/ProtectedRoute'
+import { CoachProvider, useCoach } from './lib/CoachContext'
+import Coach from './components/Coach'
 import Landing from './pages/Landing'
 import Dashboard from './pages/Dashboard'
 import CourseDetail from './pages/CourseDetail'
@@ -93,6 +95,7 @@ function AppLayout() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
+      {!isLanding && !isAuth && <GlobalCoachToggle />}
       {!isLanding && !isAuth && (
         <footer className="border-t border-[#1e293b] py-6 px-4">
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
@@ -114,17 +117,43 @@ function AppLayout() {
   )
 }
 
-function ClerkNavigate() {
-  const navigate = useNavigate()
-  return { navigate }
+function GlobalCoachToggle() {
+  const { coachContext, isCoachOpen, toggleCoach, closeCoach } = useCoach()
+  return (
+    <>
+      <button
+        onClick={toggleCoach}
+        className={`fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full shadow-lg transition-all duration-200 ${
+          isCoachOpen ? 'bg-gray-700 hover:bg-gray-600 rotate-90' : 'bg-green-600 hover:bg-green-500 hover:scale-105 shadow-green-500/20'
+        }`}
+        aria-label={isCoachOpen ? 'Close coach' : 'Open coach'}
+      >
+        {isCoachOpen ? (
+          <svg className="w-6 h-6 mx-auto text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        ) : (
+          <span className="text-2xl">🌱</span>
+        )}
+      </button>
+      <Coach
+        contextType={coachContext.type}
+        contextId={coachContext.id}
+        contextData={coachContext.data}
+        isOpen={isCoachOpen}
+        onClose={closeCoach}
+      />
+    </>
+  )
 }
 
 function App() {
   if (!clerkPubKey) {
-    // Fallback: run without auth if no key configured
     return (
       <BrowserRouter>
-        <AppLayout />
+        <CoachProvider>
+          <AppLayout />
+        </CoachProvider>
       </BrowserRouter>
     )
   }
@@ -139,7 +168,9 @@ function App() {
           </div>
         </ClerkLoading>
         <ClerkLoaded>
-          <AppLayout />
+          <CoachProvider>
+            <AppLayout />
+          </CoachProvider>
         </ClerkLoaded>
       </ClerkProvider>
     </BrowserRouter>
