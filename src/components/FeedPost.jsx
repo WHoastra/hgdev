@@ -20,6 +20,7 @@ const typeBadge = {
 }
 
 const QUICK_EMOJIS = ['🎉', '💪', '🔥', '👏', '❤️', '🚀', '💡', '👀']
+const FOUNDER_ID = 'user_3CDA0beLEJ7fxHX7i3Q5FyZmNj0'
 
 function FeedPost({ post, currentUserId, onUpdate, isCelebration }) {
   const [showReplies, setShowReplies] = useState(isCelebration)
@@ -78,6 +79,7 @@ function FeedPost({ post, currentUserId, onUpdate, isCelebration }) {
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm font-semibold text-white">{post.userProfile?.display_name || 'Unknown'}</span>
             {post.userProfile?.location && <span className="text-[10px] text-gray-600">{post.userProfile.location}</span>}
+            {post.user_id === FOUNDER_ID && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-900 text-green-400">🌱 Founder</span>}
             {badge && <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${badge.cls}`}>{badge.label}</span>}
             <span className="text-[10px] text-gray-600">{timeAgo(post.created_at)}</span>
           </div>
@@ -151,6 +153,7 @@ function FeedPost({ post, currentUserId, onUpdate, isCelebration }) {
               <div>
                 <div className="flex items-center gap-1.5">
                   <span className="text-xs font-medium text-gray-300">{r.userProfile?.display_name}</span>
+                  {r.user_id === FOUNDER_ID && <span className="text-[10px] px-1 py-0.5 rounded bg-green-900 text-green-400">🌱</span>}
                   <span className="text-[10px] text-gray-600">{timeAgo(r.created_at)}</span>
                 </div>
                 <p className="text-xs text-gray-400 leading-relaxed">{escapeHtml(r.content)}</p>
