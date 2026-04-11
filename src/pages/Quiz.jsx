@@ -88,6 +88,40 @@ function Quiz() {
         answers,
       })
 
+      // If mastery (80%+), mark all lessons in this module as complete
+      if (percentage >= 80) {
+        const { data: moduleLessons } = await supabase
+          .from('lessons')
+          .select('id')
+          .eq('module_id', moduleId)
+
+        if (moduleLessons) {
+          for (const lesson of moduleLessons) {
+            const { data: existing } = await supabase
+              .from('progress')
+              .select('id, status')
+              .eq('lesson_id', lesson.id)
+              .limit(1)
+
+            if (existing && existing.length > 0) {
+              if (existing[0].status !== 'complete') {
+                await supabase.from('progress').update({
+                  status: 'complete',
+                  completed_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString(),
+                }).eq('id', existing[0].id)
+              }
+            } else {
+              await supabase.from('progress').insert({
+                lesson_id: lesson.id,
+                status: 'complete',
+                completed_at: new Date().toISOString(),
+              })
+            }
+          }
+        }
+      }
+
       setShowResults(true)
     } else {
       setCurrentIndex(currentIndex + 1)
