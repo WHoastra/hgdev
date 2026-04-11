@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import StatusToggle from '../components/StatusToggle'
 
 function LessonDetail() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const [lesson, setLesson] = useState(null)
   const [module, setModule] = useState(null)
   const [course, setCourse] = useState(null)
@@ -13,6 +14,8 @@ function LessonDetail() {
   const [status, setStatus] = useState('not_started')
   const [loading, setLoading] = useState(true)
   const [saveMessage, setSaveMessage] = useState(null)
+  const [prevLesson, setPrevLesson] = useState(null)
+  const [nextLesson, setNextLesson] = useState(null)
   const autoSaveTimer = useRef(null)
   const saveMessageTimer = useRef(null)
 
@@ -36,6 +39,7 @@ function LessonDetail() {
         .single()
 
       let courseData = null
+      let allLessonsOrdered = []
       if (moduleData) {
         const { data: c } = await supabase
           .from('courses')
@@ -43,7 +47,31 @@ function LessonDetail() {
           .eq('id', moduleData.course_id)
           .single()
         courseData = c
+
+        // Fetch all modules for this course in order
+        const { data: allModules } = await supabase
+          .from('modules')
+          .select('*')
+          .eq('course_id', moduleData.course_id)
+          .order('sort_order')
+
+        // Fetch all lessons for each module in order
+        for (const mod of allModules || []) {
+          const { data: modLessons } = await supabase
+            .from('lessons')
+            .select('id, title, sort_order')
+            .eq('module_id', mod.id)
+            .order('sort_order')
+          if (modLessons) {
+            allLessonsOrdered.push(...modLessons)
+          }
+        }
       }
+
+      // Find prev/next
+      const currentIndex = allLessonsOrdered.findIndex((l) => l.id === id)
+      setPrevLesson(currentIndex > 0 ? allLessonsOrdered[currentIndex - 1] : null)
+      setNextLesson(currentIndex < allLessonsOrdered.length - 1 ? allLessonsOrdered[currentIndex + 1] : null)
 
       const { data: progressData } = await supabase
         .from('progress')
@@ -123,6 +151,17 @@ function LessonDetail() {
     if (ok) showSaveMessage('Saved!')
   }
 
+  const handleCompleteAndNext = async () => {
+    if (status !== 'complete') {
+      await handleStatusChange('complete')
+    }
+    if (nextLesson) {
+      navigate(`/lesson/${nextLesson.id}`)
+    } else if (course) {
+      navigate(`/course/${course.id}`)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -179,7 +218,7 @@ function LessonDetail() {
         )}
 
         {/* Notes Section */}
-        <div className="bg-[#1e293b] rounded-lg border border-gray-700 p-6 sm:p-8">
+        <div className="bg-[#1e293b] rounded-lg border border-gray-700 p-6 sm:p-8 mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-white">My Notes</h2>
             {saveMessage && (
@@ -206,6 +245,34 @@ function LessonDetail() {
               hover:bg-green-500 transition-colors"
           >
             Save Notes
+          </button>
+        </div>
+
+        {/* Navigation */}
+        <div className="flex items-center justify-between">
+          {prevLesson ? (
+            <Link
+              to={`/lesson/${prevLesson.id}`}
+              className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-green-400 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+              {prevLesson.title}
+            </Link>
+          ) : (
+            <div />
+          )}
+
+          <button
+            onClick={handleCompleteAndNext}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white text-sm font-medium rounded-lg
+              hover:bg-green-500 transition-colors"
+          >
+            {nextLesson ? 'Complete & Next' : 'Complete Course'}
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
           </button>
         </div>
       </div>
