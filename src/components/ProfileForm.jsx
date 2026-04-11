@@ -32,7 +32,7 @@ function calcCompletion(p) {
   return Math.round((filled / total) * 100)
 }
 
-function ProfileForm({ profile, userId, onSaved }) {
+function ProfileForm({ profile, userId, onSave }) {
   const [form, setForm] = useState({ ...profile })
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState(null)
@@ -90,7 +90,6 @@ function ProfileForm({ profile, userId, onSaved }) {
       showMsg('Error: ' + error.message)
     } else {
       showMsg('Saved')
-      if (onSaved) onSaved()
     }
   }
 
@@ -103,6 +102,7 @@ function ProfileForm({ profile, userId, onSaved }) {
   const handleSave = async () => {
     if (saveTimer.current) clearTimeout(saveTimer.current)
     await autoSave(formRef.current)
+    if (onSave) onSave()
   }
 
   const toggleArrayItem = (field, item) => {

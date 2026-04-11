@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useUser } from '@clerk/clerk-react'
 import { supabase } from '../lib/supabase'
 import ProfileForm from '../components/ProfileForm'
 
 function Profile() {
   const { user } = useUser()
+  const navigate = useNavigate()
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -60,7 +62,7 @@ function Profile() {
           <p className="text-gray-400 mt-1">Help us connect you with the right people</p>
         </div>
         {profile && (
-          <ProfileForm profile={profile} userId={user.id} />
+          <ProfileForm profile={profile} userId={user.id} onSave={() => navigate('/courses')} />
         )}
       </div>
     </div>
