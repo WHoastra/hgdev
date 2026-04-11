@@ -70,6 +70,7 @@ function Navbar() {
           <div className="hidden sm:flex items-center gap-4">
             <Link to="/courses" className={linkClass('/courses')}>Courses</Link>
             <Link to="/progress" className={linkClass('/progress')}>Progress</Link>
+            <Link to="/community" className={linkClass('/community')}>Community</Link>
             <Link to="/messages" className={`${linkClass('/messages')} relative`}>
               Messages
               {unreadMessages > 0 && (
@@ -153,6 +154,7 @@ function Navbar() {
         <div className="sm:hidden border-t border-gray-800 py-2">
           <Link to="/courses" className={mobileLinkClass('/courses')} onClick={() => setMenuOpen(false)}>Courses</Link>
           <Link to="/progress" className={mobileLinkClass('/progress')} onClick={() => setMenuOpen(false)}>Progress</Link>
+          <Link to="/community" className={mobileLinkClass('/community')} onClick={() => setMenuOpen(false)}>Community</Link>
           <Link to="/messages" className={mobileLinkClass('/messages')} onClick={() => setMenuOpen(false)}>
             Messages {unreadMessages > 0 && <span className="ml-1 bg-green-500 text-white text-[10px] px-1.5 rounded-full">{unreadMessages}</span>}
           </Link>
