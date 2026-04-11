@@ -36,16 +36,19 @@ function CourseCard({ course, progress }) {
       <h3 className="text-lg font-semibold text-white mb-2">{course.title}</h3>
 
       {course.description && (
-        <p className="text-sm text-gray-400 mb-4 line-clamp-2">
+        <p className="text-sm text-gray-400 mb-4 line-clamp-3">
           {course.description}
         </p>
       )}
 
-      <ProgressBar percentage={percentage} />
-
-      <p className="text-xs text-gray-500 mt-2">
-        {completedLessons} of {totalLessons} lessons complete
-      </p>
+      <div className="flex items-center gap-4">
+        <div className="flex-1">
+          <ProgressBar percentage={percentage} />
+        </div>
+        <p className="text-xs text-gray-500 shrink-0">
+          {completedLessons}/{totalLessons} lessons
+        </p>
+      </div>
     </div>
   )
 }

@@ -24,7 +24,7 @@ function Dashboard() {
       const { data: coursesData, error: coursesError } = await supabase
         .from('courses')
         .select('*')
-        .order('created_at')
+        .order('sort_order', { ascending: true, nullsFirst: false })
 
       if (coursesError) {
         setLoading(false)
@@ -79,7 +79,6 @@ function Dashboard() {
       setCourses(coursesData)
       setProgressMap(progressByCourse)
 
-      // Check if user has a profile
       const dismissed = localStorage.getItem('hgdev-profile-banner-dismissed')
       if (!dismissed) {
         const { data: profileData } = await supabase.from('user_profiles').select('profile_complete').eq('user_id', userId).limit(1)
@@ -137,9 +136,7 @@ function Dashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {showProfileBanner && (
           <div className="bg-[#1e293b] border border-green-500/30 rounded-lg p-4 mb-6 flex items-center justify-between gap-4">
-            <div>
-              <p className="text-sm text-gray-200">Welcome to HGDev! Complete your profile to connect with other developers in Southern Louisiana.</p>
-            </div>
+            <p className="text-sm text-gray-200">Welcome to HGDev! Complete your profile to connect with other developers in Southern Louisiana.</p>
             <div className="flex items-center gap-2 shrink-0">
               <Link to="/profile" className="px-4 py-1.5 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-500 transition-colors">
                 Set Up Profile
@@ -154,11 +151,13 @@ function Dashboard() {
           </div>
         )}
 
+        {/* Header */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-white">Your Courses</h1>
           <p className="text-gray-400 mt-1">Track your progress through each course</p>
         </div>
 
+        {/* Search & Filters (full width) */}
         <div className="space-y-4 mb-6">
           <SearchBar onChange={setSearchTerm} />
           {categories.length > 0 && (
@@ -171,37 +170,45 @@ function Dashboard() {
           )}
         </div>
 
-        <p className="text-xs text-gray-500 mb-4">
-          Showing {filteredCourses.length} of {courses.length} courses
-        </p>
+        {/* Two-column layout */}
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* LEFT — Courses */}
+          <div className="flex-1 lg:w-[60%] min-w-0">
+            <p className="text-xs text-gray-500 mb-4">
+              Showing {filteredCourses.length} of {courses.length} courses
+            </p>
 
-        {courses.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="text-5xl mb-4">📚</div>
-            <h3 className="text-lg font-medium text-gray-300 mb-2">No courses yet</h3>
-            <p className="text-gray-500">Courses will appear here once they're added.</p>
+            {courses.length === 0 ? (
+              <div className="text-center py-20">
+                <div className="text-5xl mb-4">📚</div>
+                <h3 className="text-lg font-medium text-gray-300 mb-2">No courses yet</h3>
+                <p className="text-gray-500">Courses will appear here once they're added.</p>
+              </div>
+            ) : filteredCourses.length === 0 ? (
+              <div className="text-center py-20">
+                <div className="text-5xl mb-4">🔍</div>
+                <h3 className="text-lg font-medium text-gray-300 mb-2">No courses match your filters</h3>
+                <p className="text-gray-500">Try adjusting your search.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {filteredCourses.map((course) => (
+                  <CourseCard
+                    key={course.id}
+                    course={course}
+                    progress={progressMap[course.id] || { completedLessons: 0, totalLessons: 0, percentage: 0 }}
+                  />
+                ))}
+              </div>
+            )}
           </div>
-        ) : filteredCourses.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="text-5xl mb-4">🔍</div>
-            <h3 className="text-lg font-medium text-gray-300 mb-2">No courses match your filters</h3>
-            <p className="text-gray-500">Try adjusting your search.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCourses.map((course) => (
-              <CourseCard
-                key={course.id}
-                course={course}
-                progress={progressMap[course.id] || { completedLessons: 0, totalLessons: 0, percentage: 0 }}
-              />
-            ))}
-          </div>
-        )}
 
-        {/* Community Feed */}
-        <div className="mt-12 border-t border-gray-800 pt-10">
-          <PublicFeed />
+          {/* RIGHT — Community Feed */}
+          <div className="lg:w-[40%] lg:border-l lg:border-gray-800 lg:pl-6">
+            <div className="lg:sticky lg:top-[72px] lg:max-h-[calc(100vh-90px)] lg:overflow-y-auto lg:pr-1 feed-scroll">
+              <PublicFeed />
+            </div>
+          </div>
         </div>
       </div>
     </div>
