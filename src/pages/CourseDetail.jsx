@@ -112,11 +112,29 @@ function CourseDetail() {
 
         const bestScore = attempts && attempts.length > 0 ? attempts[0].percentage : null
 
+        // Check if flashcards exist for this module
+        const { count: flashcardCount } = await supabase
+          .from('flashcards')
+          .select('id', { count: 'exact', head: true })
+          .eq('module_id', mod.id)
+
+        // Get best flashcard session
+        const { data: fcSessions } = await supabase
+          .from('flashcard_sessions')
+          .select('session_percentage')
+          .eq('module_id', mod.id)
+          .order('session_percentage', { ascending: false })
+          .limit(1)
+
+        const bestFlashcardScore = fcSessions && fcSessions.length > 0 ? fcSessions[0].session_percentage : null
+
         modulesWithLessons.push({
           ...mod,
           lessons: lessonsWithProgress,
           hasQuiz: (quizCount || 0) > 0,
           bestScore,
+          hasFlashcards: (flashcardCount || 0) > 0,
+          bestFlashcardScore,
         })
         expandState[mod.id] = true
       }
@@ -240,22 +258,42 @@ function CourseDetail() {
                     </button>
                   ))}
 
-                  {mod.hasQuiz && (
-                    <div className="border-t border-gray-700 px-5 py-3 flex items-center justify-between">
-                      <button
-                        onClick={() => navigate(`/quiz/${mod.id}`)}
-                        className="inline-flex items-center gap-2 text-sm font-medium text-green-400 border border-green-500/50 rounded-lg px-4 py-2
-                          hover:bg-green-500/10 transition-colors"
-                      >
-                        Take Module Quiz
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                        </svg>
-                      </button>
-                      {mod.bestScore !== null && (
-                        <span className={`text-xs font-medium ${scoreColor(mod.bestScore)}`}>
-                          Best: {mod.bestScore}%
-                        </span>
+                  {(mod.hasQuiz || mod.hasFlashcards) && (
+                    <div className="border-t border-gray-700 px-5 py-3 flex flex-wrap items-center gap-3">
+                      {mod.hasQuiz && (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => navigate(`/quiz/${mod.id}`)}
+                            className="inline-flex items-center gap-2 text-sm font-medium text-green-400 border border-green-500/50 rounded-lg px-4 py-2
+                              hover:bg-green-500/10 transition-colors"
+                          >
+                            Take Quiz
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                            </svg>
+                          </button>
+                          {mod.bestScore !== null && (
+                            <span className={`text-xs font-medium ${scoreColor(mod.bestScore)}`}>
+                              Best: {mod.bestScore}%
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      {mod.hasFlashcards && (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => navigate(`/flashcards/${mod.id}`)}
+                            className="inline-flex items-center gap-1.5 text-sm font-medium text-yellow-400 border border-yellow-500/50 rounded-lg px-4 py-2
+                              hover:bg-yellow-500/10 transition-colors"
+                          >
+                            Flashcards ⚡
+                          </button>
+                          {mod.bestFlashcardScore !== null && (
+                            <span className={`text-xs font-medium ${scoreColor(mod.bestFlashcardScore)}`}>
+                              Best: {mod.bestFlashcardScore}%
+                            </span>
+                          )}
+                        </div>
                       )}
                     </div>
                   )}

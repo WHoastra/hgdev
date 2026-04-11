@@ -8,6 +8,7 @@ import Progress from './pages/Progress'
 import Terms from './pages/Terms'
 import Privacy from './pages/Privacy'
 import Quiz from './pages/Quiz'
+import Flashcards from './pages/Flashcards'
 import NotFound from './pages/NotFound'
 
 function AppLayout() {
@@ -25,6 +26,7 @@ function AppLayout() {
           <Route path="/lesson/:id" element={<LessonDetail />} />
           <Route path="/progress" element={<Progress />} />
           <Route path="/quiz/:moduleId" element={<Quiz />} />
+          <Route path="/flashcards/:moduleId" element={<Flashcards />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="*" element={<NotFound />} />

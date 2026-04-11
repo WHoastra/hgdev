@@ -86,3 +86,8 @@ body {
 .timeline-pulse {
   animation: pulse-dot 2.5s ease-in-out infinite;
 }
+
+/* Flashcard flip */
+.flashcard-flipped {
+  transform: rotateY(180deg);
+}
