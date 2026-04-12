@@ -6,6 +6,7 @@ import CourseCard from '../components/CourseCard'
 import SearchBar from '../components/SearchBar'
 import FilterBar from '../components/FilterBar'
 import PublicFeed from '../components/PublicFeed'
+import { seedGitCourse } from '../lib/seedGitCourse'
 
 function Dashboard() {
   const { userId, isLoaded } = useUserId()
@@ -16,6 +17,7 @@ function Dashboard() {
   const [showProfileBanner, setShowProfileBanner] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [selectedDifficulty, setSelectedDifficulty] = useState('all')
+  const [seeding, setSeeding] = useState(false)
 
   useEffect(() => {
     if (!isLoaded || !userId) return
@@ -152,9 +154,29 @@ function Dashboard() {
         )}
 
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-white">Your Courses</h1>
-          <p className="text-gray-400 mt-1">Track your progress through each course</p>
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-white">Your Courses</h1>
+            <p className="text-gray-400 mt-1">Track your progress through each course</p>
+          </div>
+          <button
+            onClick={async () => {
+              if (!confirm('Load the Git & GitHub Essentials course? This will add the course with all lessons, quizzes, and flashcards.')) return
+              setSeeding(true)
+              try {
+                const result = await seedGitCourse(userId)
+                alert(`Git course loaded! ${result.modules} modules, ${result.lessons} lessons, ${result.quizQuestions} quiz questions, ${result.flashcards} flashcards.`)
+                window.location.reload()
+              } catch (e) {
+                alert('Failed to load course: ' + e.message)
+              }
+              setSeeding(false)
+            }}
+            disabled={seeding}
+            className="px-3 py-1.5 text-xs text-gray-400 border border-gray-700 rounded-lg hover:border-green-500/50 hover:text-green-400 transition-colors disabled:opacity-40"
+          >
+            {seeding ? 'Loading...' : 'Load Git Course'}
+          </button>
         </div>
 
         {/* Search & Filters (full width) */}
