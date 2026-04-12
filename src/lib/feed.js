@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { notifyReply, notifyReaction } from './notifications'
 
 export async function getFeedPosts(limit = 30, before = null) {
   let query = supabase.from('feed_posts').select('*')
@@ -64,26 +65,29 @@ export async function createReply(userId, parentId, content) {
   }).select().single()
   if (error) return null
 
-  // Increment reply count
-  const { data: parent } = await supabase.from('feed_posts').select('reply_count').eq('id', parentId).single()
+  // Increment reply count + notify post owner
+  const { data: parent } = await supabase.from('feed_posts').select('reply_count, user_id').eq('id', parentId).single()
   await supabase.from('feed_posts').update({ reply_count: (parent?.reply_count || 0) + 1 }).eq('id', parentId)
+  if (parent?.user_id) notifyReply(parent.user_id, userId, parentId, trimmed).catch(() => {})
   return data
 }
 
 export async function toggleReaction(postId, userId, emoji) {
-  const { data: post } = await supabase.from('feed_posts').select('emoji_reactions').eq('id', postId).single()
+  const { data: post } = await supabase.from('feed_posts').select('emoji_reactions, user_id').eq('id', postId).single()
   if (!post) return null
 
   const reactions = post.emoji_reactions || {}
   const users = reactions[emoji] || []
-  if (users.includes(userId)) {
+  const adding = !users.includes(userId)
+  if (adding) {
+    reactions[emoji] = [...users, userId]
+  } else {
     reactions[emoji] = users.filter((u) => u !== userId)
     if (reactions[emoji].length === 0) delete reactions[emoji]
-  } else {
-    reactions[emoji] = [...users, userId]
   }
 
   await supabase.from('feed_posts').update({ emoji_reactions: reactions }).eq('id', postId)
+  if (adding && post.user_id) notifyReaction(post.user_id, userId, postId, emoji).catch(() => {})
   return reactions
 }
 

@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { notifyDM } from './notifications'
 
 function normalizePair(a, b) {
   return a < b ? [a, b] : [b, a]
@@ -99,6 +100,13 @@ export async function sendMessage(conversationId, senderId, content) {
     last_message_at: new Date().toISOString(),
     last_message_by: senderId,
   }).eq('id', conversationId)
+
+  // Notify the other participant
+  const { data: convo } = await supabase.from('conversations').select('participant_one, participant_two').eq('id', conversationId).single()
+  if (convo) {
+    const recipientId = convo.participant_one === senderId ? convo.participant_two : convo.participant_one
+    notifyDM(recipientId, senderId, conversationId, trimmed).catch(() => {})
+  }
 
   return data
 }

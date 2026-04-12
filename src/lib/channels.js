@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { notifyChannelReply } from './notifications'
 
 export async function getChannels() {
   const { data } = await supabase.from('channels').select('*').eq('is_archived', false).order('category').order('name')
@@ -110,6 +111,16 @@ export async function sendChannelMessage(channelId, senderId, content, replyToId
   const { data, error } = await supabase.from('channel_messages').insert(insert).select().single()
   if (error) return null
   await supabase.from('channels').update({ updated_at: new Date().toISOString() }).eq('id', channelId)
+
+  // Notify the original message author if this is a reply
+  if (replyToId) {
+    const { data: original } = await supabase.from('channel_messages').select('sender_id').eq('id', replyToId).single()
+    const { data: ch } = await supabase.from('channels').select('slug').eq('id', channelId).single()
+    if (original?.sender_id && ch?.slug) {
+      notifyChannelReply(original.sender_id, senderId, ch.slug, trimmed).catch(() => {})
+    }
+  }
+
   return data
 }
 

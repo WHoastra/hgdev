@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useUser, useClerk } from '@clerk/clerk-react'
 import { getUnreadCount, subscribeToAllMessages } from '../lib/messaging'
+import NotificationBell from './NotificationBell'
 
 function Navbar() {
   const { pathname } = useLocation()
@@ -84,6 +85,7 @@ function Navbar() {
         </div>
 
         <div className="flex items-center gap-3">
+          {isSignedIn && user && <NotificationBell userId={user.id} />}
           {isSignedIn && user ? (
             <div className="relative" ref={dropdownRef}>
               <button
