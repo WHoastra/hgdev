@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useUserId } from '../lib/useUserId'
 import StatusToggle from '../components/StatusToggle'
-import { postCelebration } from '../lib/feed'
+
 import { useCoach } from '../lib/CoachContext'
 import { useBadges } from '../lib/BadgeProvider'
 import TextToSpeech from '../components/TextToSpeech'
@@ -147,7 +147,7 @@ function LessonDetail() {
         const { data: completedProgress } = await supabase.from('progress').select('id')
           .in('lesson_id', modLessons.map((l) => l.id)).eq('user_id', userId).eq('status', 'complete')
         if (completedProgress && completedProgress.length >= modLessons.length) {
-          postCelebration(userId, course.title, module.title)
+          // Celebrations removed
         }
       }
     }

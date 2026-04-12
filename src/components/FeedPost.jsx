@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
-import { getReplies, createReply, toggleReaction, deletePost } from '../lib/feed'
+import { getReplies, createReply, toggleReaction, deletePost, deleteReply } from '../lib/feed'
 
 function escapeHtml(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML }
 
@@ -16,14 +16,13 @@ const typeBadge = {
   question: { label: '❓ Question', cls: 'bg-yellow-900 text-yellow-300' },
   discussion: { label: '💬 Discussion', cls: 'bg-blue-900 text-blue-300' },
   tip: { label: '💡 Tip', cls: 'bg-green-900 text-green-300' },
-  celebration: { label: '🎉 Celebration', cls: 'bg-green-900 text-green-300' },
 }
 
 const QUICK_EMOJIS = ['🎉', '💪', '🔥', '👏', '❤️', '🚀', '💡', '👀']
 const FOUNDER_ID = 'user_3CDA0beLEJ7fxHX7i3Q5FyZmNj0'
 
-function FeedPost({ post, currentUserId, onUpdate, isCelebration }) {
-  const [showReplies, setShowReplies] = useState(isCelebration)
+function FeedPost({ post, currentUserId, onUpdate }) {
+  const [showReplies, setShowReplies] = useState(false)
   const [replies, setReplies] = useState([])
   const [loadingReplies, setLoadingReplies] = useState(false)
   const [replyText, setReplyText] = useState('')
@@ -69,7 +68,7 @@ function FeedPost({ post, currentUserId, onUpdate, isCelebration }) {
   }
 
   return (
-    <div className={`rounded-xl border p-4 sm:p-5 ${isCelebration ? 'bg-[#0a1f12] border-green-500/30 border-l-[3px] border-l-green-500' : 'bg-[#1e293b] border-gray-700'}`}>
+    <div className="rounded-xl border p-4 sm:p-5 bg-[#1e293b] border-gray-700">
       {post.is_pinned && <p className="text-[10px] text-gray-500 mb-2">📌 Pinned</p>}
 
       {/* Header */}
@@ -146,11 +145,6 @@ function FeedPost({ post, currentUserId, onUpdate, isCelebration }) {
             {emoji} {users.length}
           </button>
         ))}
-        {isCelebration && Object.keys(reactions).length === 0 && (
-          QUICK_EMOJIS.slice(0, 4).map((e) => (
-            <button key={e} onClick={() => handleReact(e)} className="px-2 py-0.5 rounded-full text-xs border border-gray-700 text-gray-500 hover:border-gray-500 transition-colors">{e}</button>
-          ))
-        )}
         <div className="relative">
           <button onClick={() => setShowEmojis(!showEmojis)} className="px-1.5 py-0.5 rounded-full text-xs border border-gray-700 text-gray-600 hover:text-gray-400 transition-colors">+</button>
           {showEmojis && (
@@ -173,15 +167,27 @@ function FeedPost({ post, currentUserId, onUpdate, isCelebration }) {
       {showReplies && (
         <div className="mt-3 border-l-2 border-gray-700 pl-3 space-y-2">
           {replies.map((r) => (
-            <div key={r.id} className="flex items-start gap-2">
+            <div key={r.id} className="group/reply flex items-start gap-2">
               <div className="w-6 h-6 rounded-full bg-green-500/15 flex items-center justify-center text-green-400 text-[10px] font-bold shrink-0">
                 {(r.userProfile?.display_name || '?')[0].toUpperCase()}
               </div>
-              <div>
+              <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
                   <span className="text-xs font-medium text-gray-300">{r.userProfile?.display_name}</span>
                   {r.user_id === FOUNDER_ID && <span className="text-[10px] px-1 py-0.5 rounded bg-green-900 text-green-400">🌱</span>}
                   <span className="text-[10px] text-gray-600">{timeAgo(r.created_at)}</span>
+                  {r.user_id === currentUserId && (
+                    <button onClick={async () => {
+                      if (!confirm('Delete this reply?')) return
+                      const ok = await deleteReply(r.id, currentUserId, post.id)
+                      if (ok) {
+                        setReplies((prev) => prev.filter((rep) => rep.id !== r.id))
+                        onUpdate?.()
+                      }
+                    }} className="text-gray-700 hover:text-red-400 text-[10px] opacity-0 group-hover/reply:opacity-100 transition-opacity ml-1" title="Delete reply">
+                      🗑
+                    </button>
+                  )}
                 </div>
                 <p className="text-xs text-gray-400 leading-relaxed">{escapeHtml(r.content)}</p>
               </div>

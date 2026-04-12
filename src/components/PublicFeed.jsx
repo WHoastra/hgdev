@@ -27,7 +27,6 @@ function PublicFeed() {
   const tabs = [
     { key: 'all', label: 'All' },
     { key: 'question', label: 'Questions' },
-    { key: 'celebration', label: 'Celebrations' },
     { key: 'tip', label: 'Tips' },
     { key: 'discussion', label: 'Discussions' },
   ]
@@ -72,7 +71,7 @@ function PublicFeed() {
       ) : (
         <div className="space-y-3">
           {filtered.map((post) => (
-            <FeedPost key={post.id} post={post} currentUserId={userId} onUpdate={fetchPosts} isCelebration={post.type === 'celebration'} />
+            <FeedPost key={post.id} post={post} currentUserId={userId} onUpdate={fetchPosts} />
           ))}
         </div>
       )}

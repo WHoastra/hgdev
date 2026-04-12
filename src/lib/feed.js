@@ -94,17 +94,16 @@ export async function deletePost(postId, userId) {
   return true
 }
 
-export async function postCelebration(userId, courseName, moduleName) {
-  // Check for existing celebration
-  const { data: existing } = await supabase.from('feed_posts').select('id')
-    .eq('user_id', userId).eq('type', 'celebration').eq('related_module', moduleName).eq('related_course', courseName).limit(1)
-  if (existing && existing.length > 0) return null
-
-  const content = `🎉 just completed the "${moduleName}" module in ${courseName}! Another step forward for the community. Show them some love!`
-  const { data } = await supabase.from('feed_posts').insert({
-    user_id: userId, type: 'celebration', content, related_course: courseName, related_module: moduleName,
-  }).select().single()
-  return data
+export async function deleteReply(replyId, userId, parentId) {
+  const { data } = await supabase.from('feed_posts').select('user_id, parent_id').eq('id', replyId).single()
+  if (!data || data.user_id !== userId) return false
+  await supabase.from('feed_posts').update({ is_deleted: true }).eq('id', replyId)
+  // Decrement reply count on parent
+  const { data: parent } = await supabase.from('feed_posts').select('reply_count').eq('id', parentId).single()
+  if (parent) {
+    await supabase.from('feed_posts').update({ reply_count: Math.max(0, (parent.reply_count || 1) - 1) }).eq('id', parentId)
+  }
+  return true
 }
 
 export function subscribeToFeed(callback) {
