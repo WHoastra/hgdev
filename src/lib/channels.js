@@ -87,9 +87,10 @@ export async function getChannelMessages(channelId, limit = 50, before = null) {
   return msgs.map((m) => ({ ...m, senderProfile: profiles[m.sender_id], replyTo: replies[m.reply_to_id] || null }))
 }
 
-export async function sendChannelMessage(channelId, senderId, content, replyToId = null) {
+export async function sendChannelMessage(channelId, senderId, content, replyToId = null, imageUrl = null, imageType = null) {
   const trimmed = content.trim()
-  if (!trimmed || trimmed.length > 2000) return null
+  if (!trimmed && !imageUrl) return null
+  if (trimmed.length > 2000) return null
 
   // Rate limit: 30 messages per 10 minutes per channel
   const key = `hgdev-ch-${channelId}`
@@ -104,6 +105,8 @@ export async function sendChannelMessage(channelId, senderId, content, replyToId
 
   const insert = { channel_id: channelId, sender_id: senderId, content: trimmed }
   if (replyToId) insert.reply_to_id = replyToId
+  if (imageUrl) insert.image_url = imageUrl
+  if (imageType) insert.image_type = imageType
   const { data, error } = await supabase.from('channel_messages').insert(insert).select().single()
   if (error) return null
   await supabase.from('channels').update({ updated_at: new Date().toISOString() }).eq('id', channelId)
@@ -116,6 +119,21 @@ export async function deleteChannelMessage(messageId, userId, userRole) {
   if (msg.sender_id !== userId && userRole !== 'admin' && userRole !== 'moderator') return false
   await supabase.from('channel_messages').update({ is_deleted: true }).eq('id', messageId)
   return true
+}
+
+export async function editChannelMessage(messageId, userId, newContent) {
+  const trimmed = newContent.trim()
+  if (!trimmed || trimmed.length > 2000) return false
+  const { data: msg } = await supabase.from('channel_messages').select('sender_id').eq('id', messageId).single()
+  if (!msg || msg.sender_id !== userId) return false
+  const { error } = await supabase.from('channel_messages').update({ content: trimmed, edited_at: new Date().toISOString() }).eq('id', messageId)
+  return !error
+}
+
+export async function deleteAllChannelMessages(channelId, userId, userRole) {
+  if (userRole !== 'admin') return false
+  const { error } = await supabase.from('channel_messages').update({ is_deleted: true }).eq('channel_id', channelId).eq('is_deleted', false)
+  return !error
 }
 
 export async function updateLastRead(channelId, userId) {
