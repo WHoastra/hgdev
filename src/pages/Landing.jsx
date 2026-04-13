@@ -20,15 +20,19 @@ function Landing() {
           <Link to="/" className="font-heading text-xl font-bold text-green-500">
             HGDev
           </Link>
-          {isSignedIn ? (
-            <Link to="/courses" className="text-sm font-medium text-green-400 border border-green-500/50 rounded-full px-4 py-1.5 hover:bg-green-500/10 transition-colors">
-              My Courses
-            </Link>
-          ) : (
-            <Link to="/sign-in" className="text-sm font-medium text-green-400 border border-green-500/50 rounded-full px-4 py-1.5 hover:bg-green-500/10 transition-colors">
-              Sign In
-            </Link>
-          )}
+          <div className="flex items-center gap-4">
+            <a href="#features" className="text-sm text-gray-400 hover:text-white transition-colors hidden sm:block">Features</a>
+            <a href="#mission" onClick={scrollToMission} className="text-sm text-gray-400 hover:text-white transition-colors hidden sm:block">Mission</a>
+            {isSignedIn ? (
+              <Link to="/courses" className="text-sm font-medium text-green-400 border border-green-500/50 rounded-full px-4 py-1.5 hover:bg-green-500/10 transition-colors">
+                Dashboard
+              </Link>
+            ) : (
+              <Link to="/sign-in" className="text-sm font-medium text-green-400 border border-green-500/50 rounded-full px-4 py-1.5 hover:bg-green-500/10 transition-colors">
+                Sign In
+              </Link>
+            )}
+          </div>
         </div>
       </nav>
 
@@ -45,29 +49,138 @@ function Landing() {
             <span className="text-green-500">our own.</span>
           </h1>
           <p className="text-[#94a3b8] text-lg max-w-[600px] mx-auto mb-10 leading-relaxed anim-fade-down" style={{ animationDelay: '0.2s' }}>
-            Southern Louisiana doesn't need to wait for tech companies to move here. We're growing our own AI developers, our own builders, our own future — from the ground up, together.
+            Learn AI development. Build real projects. Grow with a community of developers in Southern Louisiana. Free courses, hands-on tools, and everything you need to go from curious to capable.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 anim-fade-down" style={{ animationDelay: '0.3s' }}>
             <Link
               to={isSignedIn ? '/courses' : '/sign-up'}
               className="px-7 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-500 transition-colors text-sm"
             >
-              {isSignedIn ? 'Go to your courses' : 'Start building'}
+              {isSignedIn ? 'Go to your dashboard' : 'Start building — it\'s free'}
             </Link>
             <a
-              href="#mission"
-              onClick={scrollToMission}
+              href="#features"
               className="px-7 py-3 border border-gray-600 text-gray-300 font-medium rounded-lg hover:border-gray-400 hover:text-white transition-colors text-sm"
             >
-              Read our mission
+              See what's inside
             </a>
           </div>
-          <div className="flex items-center justify-center gap-8 sm:gap-14 anim-fade-up" style={{ animationDelay: '0.5s' }}>
-            <Stat number="6" label="Free courses" />
-            <div className="w-px h-10 bg-gray-700" />
-            <Stat number="50+" label="Hands-on lessons" />
-            <div className="w-px h-10 bg-gray-700" />
-            <Stat number="100%" label="Community powered" />
+          <div className="flex items-center justify-center gap-6 sm:gap-14 flex-wrap anim-fade-up" style={{ animationDelay: '0.5s' }}>
+            <Stat number="10+" label="Free courses" />
+            <div className="w-px h-10 bg-gray-700 hidden sm:block" />
+            <Stat number="130+" label="Hands-on lessons" />
+            <div className="w-px h-10 bg-gray-700 hidden sm:block" />
+            <Stat number="AI" label="Personal coach" />
+            <div className="w-px h-10 bg-gray-700 hidden sm:block" />
+            <Stat number="100%" label="Free forever" />
+          </div>
+        </div>
+      </section>
+
+      {/* FEATURES OVERVIEW */}
+      <section id="features" className="py-20 sm:py-28 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="font-heading text-3xl sm:text-4xl font-bold text-white mb-3">Everything you need to become a developer</h2>
+            <p className="text-[#94a3b8] max-w-[550px] mx-auto">Not just courses. A complete platform for learning, building, and growing with a real community.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <FeatureCard
+              icon="📚"
+              title="Structured Courses"
+              description="From prompt engineering to full-stack development. Each course has modules, lessons, quizzes, and flashcards to lock in what you learn."
+              color="green"
+            />
+            <FeatureCard
+              icon="🤖"
+              title="AI Coach"
+              description="A personal AI tutor that knows your current lesson. Ask questions, get unstuck, and deepen your understanding — right inside every page."
+              color="blue"
+            />
+            <FeatureCard
+              icon="🚀"
+              title="Community Projects"
+              description="Create or join real collaborative projects. Assign tasks, track progress on a kanban board, and build your portfolio with other developers."
+              color="purple"
+            />
+            <FeatureCard
+              icon="💬"
+              title="Community Channels"
+              description="Topic-based chat channels for discussions, questions, and connecting with other learners. Share images, reply to messages, and build relationships."
+              color="orange"
+            />
+            <FeatureCard
+              icon="🏆"
+              title="Badges & Certificates"
+              description="Earn badges as you hit milestones. Complete a course and get a shareable certificate to prove your skills to employers."
+              color="yellow"
+            />
+            <FeatureCard
+              icon="🗳️"
+              title="Project Voting"
+              description="Project founders can create polls so the community votes on what features to build next. Your voice shapes real projects."
+              color="pink"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* HOW IT WORKS - EXPANDED */}
+      <section className="py-20 sm:py-28 px-6 bg-[#0c1322]">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="font-heading text-3xl sm:text-4xl font-bold text-white mb-3">How it works</h2>
+            <p className="text-[#94a3b8]">From zero to building real projects — here's the path.</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <StepCard number="01" title="Learn the fundamentals" description="Start with beginner courses: terminal, Git, prompt engineering. Each lesson is hands-on with quizzes and flashcards to reinforce what you learn." />
+            <StepCard number="02" title="Get help from AI" description="Every page has an AI coach that knows your context. Stuck on a lesson? Ask it. Working through a quiz? It can guide you. You're never alone." />
+            <StepCard number="03" title="Join the community" description="Connect in topic channels, DM other learners, and find your people. Southern Louisiana developers building together — from Houma to Lafayette." />
+            <StepCard number="04" title="Build real projects" description="Once you finish beginner courses, create or join community projects. Get assigned tasks, collaborate on GitHub, and ship something real." />
+          </div>
+        </div>
+      </section>
+
+      {/* CURRICULUM */}
+      <section className="py-20 sm:py-28 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-14">
+            <h2 className="font-heading text-3xl sm:text-4xl font-bold text-white mb-3">The curriculum</h2>
+            <p className="text-[#94a3b8]">From your first prompt to your first production app.</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <CurriculumCard badge="Beginner" badgeColor="bg-green-900 text-green-300" title="Terminal & Command Line" description="Master the command line from scratch. Navigate files, run commands, and set up your development environment like a pro." />
+            <CurriculumCard badge="Beginner" badgeColor="bg-green-900 text-green-300" title="Git & GitHub Essentials" description="Version control, branching, pull requests — the collaboration skills every developer needs. Build your GitHub identity." />
+            <CurriculumCard badge="Beginner" badgeColor="bg-green-900 text-green-300" title="Prompt Engineering" description="Learn how to think with AI. Write prompts that solve real problems — the foundational skill of the next decade." />
+            <CurriculumCard badge="Intermediate" badgeColor="bg-blue-900 text-blue-300" title="Claude API Development" description="Build real applications powered by Claude. APIs, tool use, function calling — ship something that actually works." />
+            <CurriculumCard badge="Intermediate" badgeColor="bg-blue-900 text-blue-300" title="AI Agents & MCP" description="Build autonomous AI agents. Learn the Model Context Protocol and advanced patterns for multi-step AI workflows." />
+            <CurriculumCard badge="Beginner" badgeColor="bg-amber-900 text-amber-300" title="AI Safety & Ethics" description="Power comes with responsibility. Build AI that's fair, transparent, and actually helpful." />
+          </div>
+        </div>
+      </section>
+
+      {/* COMMUNITY PROJECTS SHOWCASE */}
+      <section className="py-20 sm:py-28 px-6 bg-[#0c1322]">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-14">
+            <h2 className="font-heading text-3xl sm:text-4xl font-bold text-white mb-3">Build together, not alone</h2>
+            <p className="text-[#94a3b8] max-w-[550px] mx-auto">Community Projects let you collaborate on real software with other developers. It's the closest thing to a job before you have one.</p>
+          </div>
+          <div className="bg-[#1e293b] border border-gray-700 rounded-2xl p-6 sm:p-8">
+            <div className="flex items-center gap-3 mb-4">
+              <span className="text-3xl">🚀</span>
+              <div>
+                <h3 className="text-lg font-bold text-white">Community Projects include:</h3>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+              <ProjectFeature icon="📋" text="Kanban task board — Open, In Progress, Review, Done" />
+              <ProjectFeature icon="👥" text="Team members with founder, admin, and member roles" />
+              <ProjectFeature icon="🔗" text="GitHub integration — stars, forks, language auto-synced" />
+              <ProjectFeature icon="🗳️" text="Polls to vote on features and direction" />
+              <ProjectFeature icon="💬" text="Discussion threads with image and video uploads" />
+              <ProjectFeature icon="📌" text="Task assignment — founders assign work to members" />
+            </div>
           </div>
         </div>
       </section>
@@ -90,7 +203,7 @@ function Landing() {
       </section>
 
       {/* VALUES */}
-      <section className="py-20 sm:py-28 px-6">
+      <section className="py-20 sm:py-28 px-6 bg-[#0c1322]">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-14">
             <h2 className="font-heading text-3xl sm:text-4xl font-bold text-white mb-3">What we believe</h2>
@@ -105,98 +218,51 @@ function Landing() {
         </div>
       </section>
 
-      {/* CURRICULUM */}
+      {/* PLATFORM STATS / SOCIAL PROOF */}
       <section className="py-20 sm:py-28 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-14">
-            <h2 className="font-heading text-3xl sm:text-4xl font-bold text-white mb-3">The curriculum</h2>
-            <p className="text-[#94a3b8]">From your first prompt to your first production app.</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <CurriculumCard
-              badge="Prompt Engineering"
-              badgeColor="bg-green-900 text-green-300"
-              title="Start talking to AI"
-              description="Learn how to think with AI. Write prompts that solve real problems — not toy examples. This is the foundational skill of the next decade."
-            />
-            <CurriculumCard
-              badge="Development"
-              badgeColor="bg-blue-900 text-blue-300"
-              title="Build real applications"
-              description="APIs, databases, deployment. Build apps powered by Claude that actually work in the real world. Ship something you're proud of."
-            />
-            <CurriculumCard
-              badge="AI Safety & Ethics"
-              badgeColor="bg-amber-900 text-amber-300"
-              title="Think about what matters"
-              description="Power comes with responsibility. Learn to build AI that's fair, transparent, and actually helpful. The world needs builders who think about this."
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* JOURNEY */}
-      <section className="py-20 sm:py-28 px-6">
-        <div className="max-w-[600px] mx-auto">
-          <div className="text-center mb-14">
-            <h2 className="font-heading text-3xl sm:text-4xl font-bold text-white mb-3">The journey</h2>
-            <p className="text-[#94a3b8]">Every expert started exactly where you are.</p>
-          </div>
-          <div className="space-y-0">
-            <TimelineStep step="01" title="Show up curious" description="You don't need experience. You don't need a CS degree. You need a laptop, internet access, and the willingness to try. That's it." />
-            <TimelineStep step="02" title="Learn by building" description="Every lesson has you building something real. Not reading theory — doing the work. You'll struggle, you'll debug, you'll figure it out. That's the process." />
-            <TimelineStep step="03" title="Connect with your people" description="Meet other builders in Southern Louisiana who are on the same journey. Study together, build together, push each other. Your network starts here." />
-            <TimelineStep step="04" title="Become the person who stays" description="Get certified. Build your portfolio. Start freelancing, get hired, or launch something of your own. Then reach back and help the next person coming up behind you." last />
-          </div>
-        </div>
-      </section>
-
-      {/* COMMUNITY */}
-      <section className="py-20 sm:py-28 px-6 bg-[#0c1322]">
-        <div className="max-w-[650px] mx-auto text-center">
-          <h2 className="font-heading text-3xl sm:text-4xl font-bold text-white mb-8">This is bigger than code</h2>
-          <p className="text-[#94a3b8] text-lg leading-[1.8] mb-14">
-            Every developer we grow here is a job creator, a mentor, a proof of concept. We're not just teaching people to code. We're building an ecosystem — a Southern Louisiana tech community that didn't exist before, built by the people who refused to wait for it.
-          </p>
-          <div className="flex items-center justify-center gap-10 sm:gap-16">
-            <div className="text-center">
-              <p className="text-xs text-gray-500 mb-1">Built in</p>
-              <p className="font-heading font-bold text-green-500">Houma, LA</p>
-            </div>
-            <div className="text-center">
-              <p className="text-xs text-gray-500 mb-1">For</p>
-              <p className="font-heading font-bold text-green-500">Southern Louisiana</p>
-            </div>
-            <div className="text-center">
-              <p className="text-xs text-gray-500 mb-1">By</p>
-              <p className="font-heading font-bold text-green-500">The community</p>
-            </div>
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="font-heading text-3xl sm:text-4xl font-bold text-white mb-14">Built for real learning</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+            <BigStat number="10+" label="Courses" sub="Beginner to advanced" />
+            <BigStat number="130+" label="Lessons" sub="Hands-on, practical" />
+            <BigStat number="24/7" label="AI Coach" sub="Always available" />
+            <BigStat number="0" label="Cost" sub="Free forever" prefix="$" />
           </div>
         </div>
       </section>
 
       {/* FINAL CTA */}
-      <section className="py-24 sm:py-32 px-6 text-center">
+      <section className="py-24 sm:py-32 px-6 text-center bg-[#0c1322]">
         <h2 className="font-heading font-extrabold text-white mb-6" style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', lineHeight: 1.1 }}>
           The future doesn't get <span className="text-green-500">imported.</span><br />
           It gets <span className="text-green-500">built.</span>
         </h2>
-        <p className="text-[#94a3b8] text-lg mb-10">
+        <p className="text-[#94a3b8] text-lg mb-4 max-w-[500px] mx-auto">
+          Courses. Projects. Community. AI coaching. Everything you need — nothing you have to pay for.
+        </p>
+        <p className="text-gray-600 text-sm mb-10">
           No tuition. No gatekeepers. No excuses. Just the work.
         </p>
         <Link
           to={isSignedIn ? '/courses' : '/sign-up'}
           className="inline-block px-8 py-3.5 bg-green-600 text-white font-medium rounded-lg hover:bg-green-500 transition-colors text-sm"
         >
-          {isSignedIn ? 'Go to your courses' : 'Start your first lesson'}
+          {isSignedIn ? 'Go to your dashboard' : 'Start your first lesson'}
         </Link>
       </section>
 
       {/* FOOTER */}
-      <footer className="border-t border-[#1e293b] py-10 px-6 text-center">
-        <p className="text-sm text-gray-500 mb-1">HGDev &mdash; Homegrown Developers &copy; 2026</p>
-        <p className="text-xs text-gray-600 mb-1">Southern Louisiana</p>
-        <p className="text-xs text-gray-600">Building local talent, one lesson at a time.</p>
+      <footer className="border-t border-[#1e293b] py-10 px-6">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="text-center sm:text-left">
+            <p className="text-sm text-gray-500 mb-1">HGDev &mdash; Homegrown Developers &copy; 2026</p>
+            <p className="text-xs text-gray-600">Built in Houma, LA. For Southern Louisiana. By the community.</p>
+          </div>
+          <div className="flex items-center gap-6">
+            <Link to="/terms" className="text-xs text-gray-600 hover:text-gray-400 transition-colors">Terms</Link>
+            <Link to="/privacy" className="text-xs text-gray-600 hover:text-gray-400 transition-colors">Privacy</Link>
+          </div>
+        </div>
       </footer>
     </div>
   )
@@ -207,6 +273,57 @@ function Stat({ number, label }) {
     <div className="text-center">
       <p className="font-heading text-2xl sm:text-3xl font-bold text-green-500">{number}</p>
       <p className="text-xs text-gray-500 mt-1">{label}</p>
+    </div>
+  )
+}
+
+function BigStat({ number, label, sub, prefix }) {
+  return (
+    <div className="text-center">
+      <p className="font-heading text-3xl sm:text-4xl font-bold text-white">{prefix}{number}</p>
+      <p className="text-sm font-medium text-green-400 mt-1">{label}</p>
+      <p className="text-xs text-gray-500 mt-0.5">{sub}</p>
+    </div>
+  )
+}
+
+function FeatureCard({ icon, title, description, color }) {
+  const borderColors = {
+    green: 'hover:border-t-green-500',
+    blue: 'hover:border-t-blue-500',
+    purple: 'hover:border-t-purple-500',
+    orange: 'hover:border-t-orange-500',
+    yellow: 'hover:border-t-yellow-500',
+    pink: 'hover:border-t-pink-500',
+  }
+  const bgColors = {
+    green: 'bg-green-500/15',
+    blue: 'bg-blue-500/15',
+    purple: 'bg-purple-500/15',
+    orange: 'bg-orange-500/15',
+    yellow: 'bg-yellow-500/15',
+    pink: 'bg-pink-500/15',
+  }
+  return (
+    <div className={`group bg-[#111827] border border-gray-800 rounded-2xl p-6 transition-all duration-400 hover:-translate-y-1 hover:border-t-2 ${borderColors[color]}`}>
+      <div className={`w-[52px] h-[52px] rounded-xl ${bgColors[color]} flex items-center justify-center text-2xl mb-5`}>
+        {icon}
+      </div>
+      <h3 className="font-heading font-bold text-white mb-2">{title}</h3>
+      <p className="text-sm text-gray-400 leading-relaxed">{description}</p>
+    </div>
+  )
+}
+
+function StepCard({ number, title, description }) {
+  return (
+    <div className="relative bg-[#111827] border border-gray-800 rounded-2xl p-6">
+      <span className="text-5xl font-heading font-extrabold text-green-500/10 absolute top-4 right-5">{number}</span>
+      <div className="relative">
+        <p className="text-xs font-medium text-green-500 uppercase tracking-wider mb-2">Step {number}</p>
+        <h3 className="font-heading font-bold text-white text-lg mb-2">{title}</h3>
+        <p className="text-sm text-gray-400 leading-relaxed">{description}</p>
+      </div>
     </div>
   )
 }
@@ -235,18 +352,11 @@ function CurriculumCard({ badge, badgeColor, title, description }) {
   )
 }
 
-function TimelineStep({ step, title, description, last }) {
+function ProjectFeature({ icon, text }) {
   return (
-    <div className="relative pl-10 pb-10">
-      {/* Connector line */}
-      {!last && <div className="absolute left-[11px] top-[28px] bottom-0 w-px bg-gray-800" />}
-      {/* Dot */}
-      <div className="absolute left-0 top-[6px] w-[23px] h-[23px] rounded-full border-2 border-green-500 bg-[#0f172a] flex items-center justify-center">
-        <div className="w-[9px] h-[9px] rounded-full bg-green-500 timeline-pulse" />
-      </div>
-      <p className="text-xs font-medium text-green-500 uppercase tracking-wider mb-1">Step {step}</p>
-      <h3 className="font-heading font-bold text-white text-lg mb-2">{title}</h3>
-      <p className="text-sm text-gray-400 leading-relaxed">{description}</p>
+    <div className="flex items-start gap-3">
+      <span className="text-lg shrink-0">{icon}</span>
+      <p className="text-sm text-gray-300">{text}</p>
     </div>
   )
 }
