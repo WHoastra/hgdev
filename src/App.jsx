@@ -23,6 +23,7 @@ import Conversation from './pages/Conversation'
 import Community from './pages/Community'
 import Channels from './pages/Channels'
 import ChannelView from './pages/Channel'
+import Project from './pages/Project'
 import CertificateView from './pages/CertificateView'
 import Badges from './pages/Badges'
 import NotFound from './pages/NotFound'
@@ -89,6 +90,7 @@ function AppLayout() {
           <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
           <Route path="/channels" element={<ProtectedRoute><Channels /></ProtectedRoute>} />
           <Route path="/channels/:slug" element={<ProtectedRoute><ChannelView /></ProtectedRoute>} />
+          <Route path="/projects/:slug" element={<ProtectedRoute><Project /></ProtectedRoute>} />
           <Route path="/messages" element={<ProtectedRoute><Inbox /></ProtectedRoute>} />
           <Route path="/messages/:conversationId" element={<ProtectedRoute><Conversation /></ProtectedRoute>} />
           <Route path="/badges" element={<ProtectedRoute><Badges /></ProtectedRoute>} />
