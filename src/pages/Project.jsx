@@ -486,19 +486,20 @@ function Project() {
                     </div>
                   )}
 
-                  <div className="flex gap-2">
+                  <div className="flex items-end gap-2">
                     <button onClick={() => setShowMediaUpload(!showMediaUpload)}
-                      className="px-3 py-2 text-gray-400 hover:text-green-400 transition-colors shrink-0" title="Attach media">
+                      className="px-3 py-2 text-gray-400 hover:text-green-400 transition-colors shrink-0 mb-0.5" title="Attach media">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                       </svg>
                     </button>
-                    <input value={commentText} onChange={(e) => setCommentText(e.target.value)}
+                    <textarea value={commentText} onChange={(e) => { setCommentText(e.target.value); e.target.style.height = 'auto'; e.target.style.height = Math.min(e.target.scrollHeight, 160) + 'px' }}
                       onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendComment() } }}
                       placeholder="Write a comment..."
-                      className="flex-1 bg-[#0f172a] text-white border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500 placeholder-gray-600" />
+                      rows={1}
+                      className="flex-1 bg-[#0f172a] text-white border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500 placeholder-gray-600 resize-none overflow-hidden" />
                     <button onClick={handleSendComment} disabled={sending || (!commentText.trim() && !pendingMedia)}
-                      className="px-4 py-2 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-500 disabled:opacity-50 transition-colors shrink-0">
+                      className="px-4 py-2 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-500 disabled:opacity-50 transition-colors shrink-0 mb-0.5">
                       {sending ? '...' : 'Send'}
                     </button>
                   </div>
