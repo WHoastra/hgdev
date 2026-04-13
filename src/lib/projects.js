@@ -262,6 +262,83 @@ export function subscribeToProjectComments(projectId, callback) {
     .subscribe()
 }
 
+// --- Polls ---
+
+export async function getProjectPolls(projectId) {
+  const { data: polls } = await supabase
+    .from('project_polls')
+    .select('*')
+    .eq('project_id', projectId)
+    .order('created_at', { ascending: false })
+  if (!polls) return []
+
+  // Get vote counts and user profiles for each poll
+  const enriched = []
+  for (const poll of polls) {
+    const { data: votes } = await supabase.from('project_poll_votes').select('*').eq('poll_id', poll.id)
+    const voteCounts = {}
+    poll.options.forEach((_, i) => { voteCounts[i] = 0 })
+    const voters = {}
+    for (const v of votes || []) {
+      voteCounts[v.option_index] = (voteCounts[v.option_index] || 0) + 1
+      voters[v.user_id] = v.option_index
+    }
+    // Get creator profile
+    const { data: profile } = await supabase.from('user_profiles').select('display_name').eq('user_id', poll.created_by).limit(1)
+    enriched.push({
+      ...poll,
+      voteCounts,
+      totalVotes: (votes || []).length,
+      voters,
+      creatorName: profile?.[0]?.display_name || 'Unknown',
+    })
+  }
+  return enriched
+}
+
+export async function createPoll(projectId, userId, question, options) {
+  if (!question.trim() || options.length < 2) return null
+  const { data, error } = await supabase.from('project_polls').insert({
+    project_id: projectId,
+    created_by: userId,
+    question: question.trim(),
+    options: options.map((o) => o.trim()).filter(Boolean),
+  }).select().single()
+  if (error) return null
+  return data
+}
+
+export async function votePoll(pollId, userId, optionIndex) {
+  // Upsert: change vote if already voted
+  const { data: existing } = await supabase
+    .from('project_poll_votes')
+    .select('id')
+    .eq('poll_id', pollId)
+    .eq('user_id', userId)
+    .limit(1)
+  if (existing && existing.length > 0) {
+    await supabase.from('project_poll_votes').update({ option_index: optionIndex }).eq('id', existing[0].id)
+  } else {
+    await supabase.from('project_poll_votes').insert({ poll_id: pollId, user_id: userId, option_index: optionIndex })
+  }
+  return true
+}
+
+export async function closePoll(pollId, userId) {
+  const { data: poll } = await supabase.from('project_polls').select('created_by').eq('id', pollId).single()
+  if (!poll || poll.created_by !== userId) return false
+  await supabase.from('project_polls').update({ is_closed: true }).eq('id', pollId)
+  return true
+}
+
+export async function deletePoll(pollId, userId) {
+  const { data: poll } = await supabase.from('project_polls').select('created_by').eq('id', pollId).single()
+  if (!poll || poll.created_by !== userId) return false
+  await supabase.from('project_poll_votes').delete().eq('poll_id', pollId)
+  await supabase.from('project_polls').delete().eq('id', pollId)
+  return true
+}
+
 // --- Seed ---
 
 export async function seedHGDevProject(userId) {

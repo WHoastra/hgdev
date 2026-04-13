@@ -6,10 +6,12 @@ import {
   getProject, getProjectMembers, getProjectTasks, getProjectComments,
   joinProject, leaveProject, fetchGitHubInfo, updateProject, deleteProject,
   createTask, updateTask, deleteTask, assignTask,
-  addProjectComment, deleteProjectComment, subscribeToProjectComments
+  addProjectComment, deleteProjectComment, subscribeToProjectComments,
+  getProjectPolls, createPoll, votePoll, closePoll, deletePoll
 } from '../lib/projects'
 import TaskBoard from '../components/TaskBoard'
 import ProjectComment from '../components/ProjectComment'
+import ProjectPoll from '../components/ProjectPoll'
 import ProjectMediaUpload from '../components/ProjectMediaUpload'
 
 function Project() {
@@ -29,6 +31,10 @@ function Project() {
   const [pendingMedia, setPendingMedia] = useState(null)
   const [sending, setSending] = useState(false)
   const [ghSyncing, setGhSyncing] = useState(false)
+  const [polls, setPolls] = useState([])
+  const [showCreatePoll, setShowCreatePoll] = useState(false)
+  const [pollQuestion, setPollQuestion] = useState('')
+  const [pollOptions, setPollOptions] = useState(['', ''])
   const [editing, setEditing] = useState(false)
   const [editName, setEditName] = useState('')
   const [editDesc, setEditDesc] = useState('')
@@ -46,14 +52,16 @@ function Project() {
     if (!p) { setLoading(false); return }
     setProject(p)
 
-    const [mems, tks, cms] = await Promise.all([
+    const [mems, tks, cms, pls] = await Promise.all([
       getProjectMembers(p.id),
       getProjectTasks(p.id),
       getProjectComments(p.id),
+      getProjectPolls(p.id),
     ])
     setMembers(mems)
     setTasks(tks)
     setComments(cms)
+    setPolls(pls)
     setMembership(mems.find((m) => m.user_id === userId) || null)
 
     // Sync GitHub info if stale (>1 hour)
@@ -185,6 +193,36 @@ function Project() {
   const handleMediaUploaded = (url, type) => {
     setPendingMedia({ url, type })
     setShowMediaUpload(false)
+  }
+
+  const handleCreatePoll = async () => {
+    const opts = pollOptions.map((o) => o.trim()).filter(Boolean)
+    if (!pollQuestion.trim() || opts.length < 2) return
+    const result = await createPoll(project.id, userId, pollQuestion, opts)
+    if (result) {
+      setPollQuestion('')
+      setPollOptions(['', ''])
+      setShowCreatePoll(false)
+      // Refetch polls to get enriched data
+      const pls = await getProjectPolls(project.id)
+      setPolls(pls)
+    }
+  }
+
+  const handleVotePoll = async (pollId, optionIndex) => {
+    await votePoll(pollId, userId, optionIndex)
+    const pls = await getProjectPolls(project.id)
+    setPolls(pls)
+  }
+
+  const handleClosePoll = async (pollId) => {
+    await closePoll(pollId, userId)
+    setPolls((prev) => prev.map((p) => p.id === pollId ? { ...p, is_closed: true } : p))
+  }
+
+  const handleDeletePoll = async (pollId) => {
+    await deletePoll(pollId, userId)
+    setPolls((prev) => prev.filter((p) => p.id !== pollId))
   }
 
   if (loading) {
@@ -344,7 +382,66 @@ function Project() {
 
             {/* Comments Section */}
             <div className="bg-[#1e293b] border border-gray-700 rounded-xl p-5">
-              <h3 className="text-lg font-bold text-white mb-4">Discussion ({comments.length})</h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-white">Discussion ({comments.length})</h3>
+                {isFounder && isMember && (
+                  <button onClick={() => setShowCreatePoll(!showCreatePoll)}
+                    className="px-3 py-1.5 text-xs font-medium text-purple-400 border border-purple-500/40 rounded-lg hover:bg-purple-500/10 transition-colors">
+                    + Create Poll
+                  </button>
+                )}
+              </div>
+
+              {/* Create Poll Form */}
+              {showCreatePoll && (
+                <div className="bg-[#0f172a] border border-purple-500/30 rounded-xl p-4 mb-4">
+                  <h4 className="text-sm font-semibold text-purple-400 mb-3">New Poll</h4>
+                  <input value={pollQuestion} onChange={(e) => setPollQuestion(e.target.value)}
+                    placeholder="What should we add next?" maxLength={200}
+                    className="w-full bg-[#1e293b] text-white border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-purple-500 mb-3 placeholder-gray-600" />
+                  <div className="space-y-2 mb-3">
+                    {pollOptions.map((opt, i) => (
+                      <div key={i} className="flex gap-2">
+                        <input value={opt} onChange={(e) => {
+                          const updated = [...pollOptions]
+                          updated[i] = e.target.value
+                          setPollOptions(updated)
+                        }} placeholder={`Option ${i + 1}`} maxLength={100}
+                          className="flex-1 bg-[#1e293b] text-white border border-gray-700 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-purple-500 placeholder-gray-600" />
+                        {pollOptions.length > 2 && (
+                          <button onClick={() => setPollOptions(pollOptions.filter((_, j) => j !== i))}
+                            className="text-gray-600 hover:text-red-400 text-xs transition-colors px-2">Remove</button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    {pollOptions.length < 6 && (
+                      <button onClick={() => setPollOptions([...pollOptions, ''])}
+                        className="text-xs text-purple-400 hover:text-purple-300 transition-colors">+ Add option</button>
+                    )}
+                    <div className="flex gap-2 ml-auto">
+                      <button onClick={() => { setShowCreatePoll(false); setPollQuestion(''); setPollOptions(['', '']) }}
+                        className="px-3 py-1.5 text-xs text-gray-400 hover:text-white transition-colors">Cancel</button>
+                      <button onClick={handleCreatePoll}
+                        disabled={!pollQuestion.trim() || pollOptions.filter((o) => o.trim()).length < 2}
+                        className="px-3 py-1.5 text-xs font-medium bg-purple-600 text-white rounded-lg hover:bg-purple-500 disabled:opacity-50 transition-colors">
+                        Post Poll
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Active Polls */}
+              {polls.length > 0 && (
+                <div className="mb-4">
+                  {polls.map((poll) => (
+                    <ProjectPoll key={poll.id} poll={poll} currentUserId={userId} isFounder={isFounder}
+                      onVote={handleVotePoll} onClose={handleClosePoll} onDelete={handleDeletePoll} />
+                  ))}
+                </div>
+              )}
 
               {/* Comments list */}
               <div className="max-h-[500px] overflow-y-auto divide-y divide-gray-800">
