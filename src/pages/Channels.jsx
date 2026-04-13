@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useUserId } from '../lib/useUserId'
 import { getChannels, getMyChannels, joinChannel, autoJoinDefaults } from '../lib/channels'
-import { getProjects, getMyProjects, joinProject, createProject, seedHGDevProject } from '../lib/projects'
+import { getProjects, getMyProjects, joinProject, createProject, seedHGDevProject, hasCompletedBeginnerCourses } from '../lib/projects'
 import ChannelCard from '../components/ChannelCard'
 import ProjectCard from '../components/ProjectCard'
 import CreateProjectModal from '../components/CreateProjectModal'
@@ -13,6 +13,7 @@ function Channels() {
   const [projects, setProjects] = useState([])
   const [myProjects, setMyProjects] = useState([])
   const [showCreateProject, setShowCreateProject] = useState(false)
+  const [canCreateProject, setCanCreateProject] = useState(false)
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState('all')
   const [search, setSearch] = useState('')
@@ -21,13 +22,14 @@ function Channels() {
     if (!userId) return
     await autoJoinDefaults(userId)
     await seedHGDevProject(userId)
-    const [all, mine, allProj, myProj] = await Promise.all([
-      getChannels(), getMyChannels(userId), getProjects(), getMyProjects(userId)
+    const [all, mine, allProj, myProj, beginnerDone] = await Promise.all([
+      getChannels(), getMyChannels(userId), getProjects(), getMyProjects(userId), hasCompletedBeginnerCourses(userId)
     ])
     setAllChannels(all)
     setMyChannels(mine)
     setProjects(allProj)
     setMyProjects(myProj)
+    setCanCreateProject(beginnerDone)
     setLoading(false)
   }
 
@@ -92,10 +94,20 @@ function Channels() {
               </h1>
               <p className="text-gray-400 mt-1">Collaborate on real projects with the community</p>
             </div>
-            <button onClick={() => setShowCreateProject(true)}
-              className="px-4 py-2 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-500 transition-colors shrink-0">
-              + New Project
-            </button>
+            {canCreateProject ? (
+              <button onClick={() => setShowCreateProject(true)}
+                className="px-4 py-2 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-500 transition-colors shrink-0">
+                + New Project
+              </button>
+            ) : (
+              <div className="text-right shrink-0">
+                <button disabled
+                  className="px-4 py-2 text-sm font-medium bg-gray-700 text-gray-500 rounded-lg cursor-not-allowed">
+                  + New Project
+                </button>
+                <p className="text-[10px] text-gray-500 mt-1">Complete all beginner courses to unlock</p>
+              </div>
+            )}
           </div>
 
           {projects.length > 0 ? (

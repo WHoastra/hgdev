@@ -48,6 +48,72 @@ export async function createProject(name, slug, description, githubUrl, tags, us
   return { data }
 }
 
+export async function updateProject(projectId, userId, updates) {
+  const { data: proj } = await supabase.from('community_projects').select('founder_id').eq('id', projectId).single()
+  if (!proj || proj.founder_id !== userId) return { error: 'Only the founder can edit this project' }
+  const allowed = {}
+  if (updates.name !== undefined) allowed.name = updates.name
+  if (updates.description !== undefined) allowed.description = updates.description
+  if (updates.github_url !== undefined) {
+    allowed.github_url = updates.github_url
+    const match = updates.github_url?.match(/github\.com\/([^/]+)\/([^/]+)/)
+    if (match) {
+      allowed.github_owner = match[1]
+      allowed.github_repo = match[2].replace(/\.git$/, '')
+    } else {
+      allowed.github_owner = null
+      allowed.github_repo = null
+    }
+  }
+  if (updates.tags !== undefined) allowed.tags = updates.tags
+  if (updates.status !== undefined) allowed.status = updates.status
+  allowed.updated_at = new Date().toISOString()
+  const { error } = await supabase.from('community_projects').update(allowed).eq('id', projectId)
+  if (error) return { error: error.message }
+  return { success: true }
+}
+
+export async function deleteProject(projectId, userId) {
+  const { data: proj } = await supabase.from('community_projects').select('founder_id').eq('id', projectId).single()
+  if (!proj || proj.founder_id !== userId) return { error: 'Only the founder can delete this project' }
+  // Delete members, tasks, comments first (cascade should handle it, but be safe)
+  await supabase.from('project_comments').delete().eq('project_id', projectId)
+  await supabase.from('project_tasks').delete().eq('project_id', projectId)
+  await supabase.from('project_members').delete().eq('project_id', projectId)
+  const { error } = await supabase.from('community_projects').delete().eq('id', projectId)
+  if (error) return { error: error.message }
+  return { success: true }
+}
+
+export async function hasCompletedBeginnerCourses(userId) {
+  // Get all beginner courses
+  const { data: courses } = await supabase.from('courses').select('id').eq('difficulty', 'beginner')
+  if (!courses || courses.length === 0) return true // No beginner courses = no gate
+
+  for (const course of courses) {
+    // Get all modules for this course
+    const { data: modules } = await supabase.from('modules').select('id').eq('course_id', course.id)
+    if (!modules || modules.length === 0) continue
+
+    // Get all lessons for these modules
+    const moduleIds = modules.map((m) => m.id)
+    const { data: lessons } = await supabase.from('lessons').select('id').in('module_id', moduleIds)
+    if (!lessons || lessons.length === 0) continue
+
+    // Check progress
+    const lessonIds = lessons.map((l) => l.id)
+    const { count } = await supabase
+      .from('progress')
+      .select('id', { count: 'exact', head: true })
+      .in('lesson_id', lessonIds)
+      .eq('user_id', userId)
+      .eq('status', 'complete')
+
+    if ((count || 0) < lessons.length) return false
+  }
+  return true
+}
+
 export async function joinProject(projectId, userId) {
   const { data, error } = await supabase
     .from('project_members')

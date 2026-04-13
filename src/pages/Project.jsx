@@ -4,7 +4,7 @@ import { useUserId } from '../lib/useUserId'
 import { supabase } from '../lib/supabase'
 import {
   getProject, getProjectMembers, getProjectTasks, getProjectComments,
-  joinProject, leaveProject, fetchGitHubInfo,
+  joinProject, leaveProject, fetchGitHubInfo, updateProject, deleteProject,
   createTask, updateTask, deleteTask, assignTask,
   addProjectComment, deleteProjectComment, subscribeToProjectComments
 } from '../lib/projects'
@@ -29,6 +29,13 @@ function Project() {
   const [pendingMedia, setPendingMedia] = useState(null)
   const [sending, setSending] = useState(false)
   const [ghSyncing, setGhSyncing] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const [editName, setEditName] = useState('')
+  const [editDesc, setEditDesc] = useState('')
+  const [editGithub, setEditGithub] = useState('')
+  const [editTags, setEditTags] = useState('')
+  const [editSaving, setEditSaving] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   const isFounder = project?.founder_id === userId
   const isMember = !!membership
@@ -90,6 +97,35 @@ function Project() {
     const result = await leaveProject(project.id, userId)
     if (result?.error) return
     navigate('/channels')
+  }
+
+  const handleStartEdit = () => {
+    setEditName(project.name)
+    setEditDesc(project.description || '')
+    setEditGithub(project.github_url || '')
+    setEditTags((project.tags || []).join(', '))
+    setEditing(true)
+  }
+
+  const handleSaveEdit = async () => {
+    setEditSaving(true)
+    const tags = editTags.split(',').map((t) => t.trim()).filter(Boolean)
+    const result = await updateProject(project.id, userId, {
+      name: editName.trim(),
+      description: editDesc.trim(),
+      github_url: editGithub.trim() || null,
+      tags,
+    })
+    if (!result?.error) {
+      setEditing(false)
+      fetchAll()
+    }
+    setEditSaving(false)
+  }
+
+  const handleDeleteProject = async () => {
+    const result = await deleteProject(project.id, userId)
+    if (!result?.error) navigate('/channels')
   }
 
   const handleSyncGitHub = async () => {
@@ -181,25 +217,82 @@ function Project() {
             </div>
             {project.description && <p className="text-sm text-gray-400 mt-1">{project.description}</p>}
           </div>
-          {isMember && !isFounder && (
-            <button onClick={handleLeave} className="px-3 py-1.5 text-xs text-red-400 border border-red-500/30 rounded-lg hover:bg-red-500/10 transition-colors">Leave</button>
-          )}
-          {!isMember && (
-            <button onClick={handleJoin} className="px-4 py-2 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-500 transition-colors">Join Project</button>
-          )}
+          <div className="flex items-center gap-2 shrink-0">
+            {isFounder && (
+              <>
+                <button onClick={handleStartEdit} className="px-3 py-1.5 text-xs text-gray-300 border border-gray-600 rounded-lg hover:border-gray-500 hover:text-white transition-colors">Edit</button>
+                {!confirmDelete ? (
+                  <button onClick={() => setConfirmDelete(true)} className="px-3 py-1.5 text-xs text-red-400 border border-red-500/30 rounded-lg hover:bg-red-500/10 transition-colors">Delete</button>
+                ) : (
+                  <div className="flex items-center gap-1">
+                    <button onClick={handleDeleteProject} className="px-3 py-1.5 text-xs text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg font-medium">Confirm Delete</button>
+                    <button onClick={() => setConfirmDelete(false)} className="px-3 py-1.5 text-xs text-gray-400 border border-gray-700 rounded-lg">Cancel</button>
+                  </div>
+                )}
+              </>
+            )}
+            {isMember && !isFounder && (
+              <button onClick={handleLeave} className="px-3 py-1.5 text-xs text-red-400 border border-red-500/30 rounded-lg hover:bg-red-500/10 transition-colors">Leave</button>
+            )}
+            {!isMember && (
+              <button onClick={handleJoin} className="px-4 py-2 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-500 transition-colors">Join Project</button>
+            )}
+          </div>
         </div>
 
-        {/* GitHub Info Card */}
+        {/* Edit Modal */}
+        {editing && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" onClick={() => setEditing(false)}>
+            <div className="bg-[#1e293b] border border-gray-700 rounded-xl w-full max-w-lg p-6" onClick={(e) => e.stopPropagation()}>
+              <h2 className="text-xl font-bold text-white mb-4">Edit Project</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Project Name</label>
+                  <input value={editName} onChange={(e) => setEditName(e.target.value)} maxLength={80}
+                    className="w-full bg-[#0f172a] text-white border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Description</label>
+                  <textarea value={editDesc} onChange={(e) => setEditDesc(e.target.value)} rows={3} maxLength={500}
+                    className="w-full bg-[#0f172a] text-white border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500 resize-none" />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">GitHub URL</label>
+                  <input value={editGithub} onChange={(e) => setEditGithub(e.target.value)}
+                    className="w-full bg-[#0f172a] text-white border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" placeholder="https://github.com/user/repo" />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Tags (comma-separated)</label>
+                  <input value={editTags} onChange={(e) => setEditTags(e.target.value)}
+                    className="w-full bg-[#0f172a] text-white border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
+                </div>
+                <div className="flex justify-end gap-3 pt-2">
+                  <button onClick={() => setEditing(false)} className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors">Cancel</button>
+                  <button onClick={handleSaveEdit} disabled={editSaving}
+                    className="px-5 py-2 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-500 disabled:opacity-50 transition-colors">
+                    {editSaving ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* GitHub Repository Link */}
         {project.github_url && (
+          <a href={project.github_url} target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-3 bg-[#1e293b] border border-gray-700 rounded-xl px-5 py-3 mb-4 hover:border-green-500/50 transition-colors group">
+            <svg className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z" /></svg>
+            <span className="text-green-400 group-hover:text-green-300 font-medium text-sm transition-colors">{project.github_url}</span>
+            <svg className="w-4 h-4 text-gray-600 group-hover:text-gray-400 ml-auto transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+          </a>
+        )}
+
+        {/* GitHub Stats Card */}
+        {project.github_owner && (
           <div className="bg-[#1e293b] border border-gray-700 rounded-xl p-5 mb-6">
             <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z" /></svg>
-                <a href={project.github_url} target="_blank" rel="noopener noreferrer"
-                  className="text-sm text-green-400 hover:text-green-300 font-medium transition-colors">
-                  {project.github_owner}/{project.github_repo}
-                </a>
-              </div>
+              <span className="text-sm font-medium text-gray-300">{project.github_owner}/{project.github_repo}</span>
               <button onClick={handleSyncGitHub} disabled={ghSyncing}
                 className="text-xs text-gray-500 hover:text-gray-300 transition-colors disabled:opacity-50">
                 {ghSyncing ? 'Syncing...' : 'Refresh'}
