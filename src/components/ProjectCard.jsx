@@ -1,16 +1,16 @@
 import { useNavigate } from 'react-router-dom'
 
-function ProjectCard({ project, isMember, onJoin }) {
+function ProjectCard({ project, isMember, canJoin, onJoin }) {
   const navigate = useNavigate()
 
   const handleClick = () => {
-    if (isMember) navigate(`/projects/${project.slug}`)
+    navigate(`/projects/${project.slug}`)
   }
 
   return (
     <div
       onClick={handleClick}
-      className={`bg-[#1e293b] rounded-xl border border-gray-700 p-6 transition-all duration-200 ${isMember ? 'cursor-pointer hover:-translate-y-1 hover:border-green-500/50 hover:shadow-lg hover:shadow-green-500/5' : ''}`}
+      className="bg-[#1e293b] rounded-xl border border-gray-700 p-6 transition-all duration-200 cursor-pointer hover:-translate-y-1 hover:border-green-500/50 hover:shadow-lg hover:shadow-green-500/5"
       style={{ borderLeftWidth: '4px', borderLeftColor: '#22c55e' }}
     >
       <div className="flex items-start justify-between mb-3">
@@ -72,16 +72,23 @@ function ProjectCard({ project, isMember, onJoin }) {
       )}
 
       {/* Action */}
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-end gap-2">
         {isMember ? (
           <span className="text-xs text-green-400 font-medium">View Project →</span>
-        ) : (
+        ) : canJoin ? (
           <button
             onClick={(e) => { e.stopPropagation(); onJoin?.(project.id) }}
             className="px-4 py-1.5 text-xs font-medium text-green-400 border border-green-500/50 rounded-lg hover:bg-green-500/10 transition-colors"
           >
             Join Project
           </button>
+        ) : (
+          <div className="text-right" onClick={(e) => e.stopPropagation()}>
+            <button disabled className="px-4 py-1.5 text-xs font-medium text-gray-500 border border-gray-700 rounded-lg cursor-not-allowed">
+              Join Project
+            </button>
+            <p className="text-[10px] text-gray-600 mt-1">Complete beginner courses first</p>
+          </div>
         )}
       </div>
     </div>

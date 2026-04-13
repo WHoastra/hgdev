@@ -7,7 +7,8 @@ import {
   joinProject, leaveProject, fetchGitHubInfo, updateProject, deleteProject,
   createTask, updateTask, deleteTask, assignTask,
   addProjectComment, deleteProjectComment, subscribeToProjectComments,
-  getProjectPolls, createPoll, votePoll, closePoll, deletePoll
+  getProjectPolls, createPoll, votePoll, closePoll, deletePoll,
+  hasCompletedBeginnerCourses
 } from '../lib/projects'
 import TaskBoard from '../components/TaskBoard'
 import ProjectComment from '../components/ProjectComment'
@@ -31,6 +32,7 @@ function Project() {
   const [pendingMedia, setPendingMedia] = useState(null)
   const [sending, setSending] = useState(false)
   const [ghSyncing, setGhSyncing] = useState(false)
+  const [canJoin, setCanJoin] = useState(false)
   const [polls, setPolls] = useState([])
   const [showCreatePoll, setShowCreatePoll] = useState(false)
   const [pollQuestion, setPollQuestion] = useState('')
@@ -52,16 +54,18 @@ function Project() {
     if (!p) { setLoading(false); return }
     setProject(p)
 
-    const [mems, tks, cms, pls] = await Promise.all([
+    const [mems, tks, cms, pls, beginnerDone] = await Promise.all([
       getProjectMembers(p.id),
       getProjectTasks(p.id),
       getProjectComments(p.id),
       getProjectPolls(p.id),
+      hasCompletedBeginnerCourses(userId),
     ])
     setMembers(mems)
     setTasks(tks)
     setComments(cms)
     setPolls(pls)
+    setCanJoin(beginnerDone)
     setMembership(mems.find((m) => m.user_id === userId) || null)
 
     // Sync GitHub info if stale (>1 hour)
@@ -270,10 +274,16 @@ function Project() {
               </>
             )}
             {isMember && !isFounder && (
-              <button onClick={handleLeave} className="px-3 py-1.5 text-xs text-red-400 border border-red-500/30 rounded-lg hover:bg-red-500/10 transition-colors">Leave</button>
+              <button onClick={handleLeave} className="px-4 py-2 text-sm font-medium text-red-400 border border-red-500/40 rounded-lg hover:bg-red-500/10 transition-colors">Leave Project</button>
             )}
-            {!isMember && (
+            {!isMember && canJoin && (
               <button onClick={handleJoin} className="px-4 py-2 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-500 transition-colors">Join Project</button>
+            )}
+            {!isMember && !canJoin && (
+              <div className="text-right">
+                <button disabled className="px-4 py-2 text-sm font-medium bg-gray-700 text-gray-500 rounded-lg cursor-not-allowed">Join Project</button>
+                <p className="text-[10px] text-gray-500 mt-1">Complete beginner courses first</p>
+              </div>
             )}
           </div>
         </div>
@@ -497,7 +507,9 @@ function Project() {
 
               {!isMember && (
                 <div className="mt-4 pt-4 border-t border-gray-700 text-center">
-                  <p className="text-gray-500 text-sm">Join this project to participate in the discussion</p>
+                  <p className="text-gray-500 text-sm">
+                    {canJoin ? 'Join this project to participate in the discussion' : 'Complete all beginner courses to join and participate'}
+                  </p>
                 </div>
               )}
             </div>

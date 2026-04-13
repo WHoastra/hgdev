@@ -113,7 +113,7 @@ function Channels() {
           {projects.length > 0 ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
               {projects.map((p) => (
-                <ProjectCard key={p.id} project={p} isMember={myProjectIds.has(p.id)} onJoin={handleJoinProject} />
+                <ProjectCard key={p.id} project={p} isMember={myProjectIds.has(p.id)} canJoin={canCreateProject} onJoin={handleJoinProject} />
               ))}
             </div>
           ) : (
